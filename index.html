@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>W&B Calculator</title>
+    <title>W&B Calculator Pro</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -13,7 +13,48 @@
             background-color: #f9f9f9;
             color: #333;
         }
-        h2 { text-align: center; }
+        h2 { text-align: center; margin-top: 0; }
+        
+        /* Navigation & Screens */
+        .app-screen { display: none; }
+        .app-screen.active { display: block; }
+        
+        .menu-title { text-align: center; margin-bottom: 30px; font-size: 28px; color: #0056b3; }
+        .menu-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .menu-btn:hover { background-color: #004494; }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .nav-bar h2 { margin: 0; font-size: 20px; }
+        .back-btn {
+            padding: 8px 15px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* General Inputs & Tables */
         .input-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; }
         input {
@@ -24,11 +65,11 @@
             border-radius: 8px;
             box-sizing: border-box;
         }
-        button {
+        .calc-btn {
             width: 100%;
             padding: 15px;
             font-size: 18px;
-            background-color: #0056b3;
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 8px;
@@ -36,7 +77,7 @@
             font-weight: bold;
             margin-top: 10px;
         }
-        button:hover { background-color: #004494; }
+        .calc-btn:hover { background-color: #218838; }
         
         .error {
             color: #d9534f;
@@ -56,15 +97,13 @@
             margin-top: 25px;
             background: white;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
         th { background-color: #f2f2f2; }
+        .subtotal { background-color: #e9ecef; font-weight: bold; }
         
-        #results-container { display: none; }
+        .results-container { display: none; }
         .cg-result {
             text-align: center;
             font-size: 22px;
@@ -76,78 +115,187 @@
 </head>
 <body>
 
-    <h2>Weight & Balance</h2>
-
-    <div class="input-group">
-        <label>Aircraft Registration (Last 3 letters):</label>
-        <!-- Changed to 3 letters -->
-        <input type="text" id="ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
+    <!-- ========================================== -->
+    <!-- MAIN MENU SCREEN -->
+    <!-- ========================================== -->
+    <div id="screen-menu" class="app-screen active">
+        <h1 class="menu-title">W&B Calculator</h1>
+        <button class="menu-btn" onclick="switchScreen('screen-single')">Single Engine<br><span style="font-size: 14px; font-weight: normal;">(Cessna Fleet)</span></button>
+        <button class="menu-btn" onclick="switchScreen('screen-multi')">Multi Engine<br><span style="font-size: 14px; font-weight: normal;">(Piper Seneca VT-AET)</span></button>
     </div>
 
-    <div class="input-group">
-        <label>PIC Weight (lbs):</label>
-        <input type="number" id="pic-weight" placeholder="Must be greater than 0">
+    <!-- ========================================== -->
+    <!-- SINGLE ENGINE SCREEN -->
+    <!-- ========================================== -->
+    <div id="screen-single" class="app-screen">
+        <div class="nav-bar">
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
+            <h2>Single Engine</h2>
+        </div>
+
+        <div class="input-group">
+            <label>Aircraft Registration (Last 3 letters):</label>
+            <input type="text" id="s-ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
+        </div>
+        <div class="input-group">
+            <label>PIC Weight (kg):</label>
+            <input type="number" id="s-pic-weight" placeholder="Must be greater than 0">
+        </div>
+        <div class="input-group">
+            <label>Trainee Weight (kg):</label>
+            <input type="number" id="s-trainee-weight" placeholder="Can be 0">
+        </div>
+        <div class="input-group">
+            <label>Fuel (Liters):</label>
+            <input type="number" id="s-fuel-liters" placeholder="Enter usable fuel in Liters">
+        </div>
+
+        <button class="calc-btn" onclick="calculateSingleWB()">Calculate Single</button>
+        <div id="s-error-msg" class="error"></div>
+
+        <div id="s-results-container" class="results-container">
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Weight (lbs)</th>
+                    <th>Arm (in)</th>
+                    <th>Moment</th>
+                </tr>
+                <tr>
+                    <td>Basic Empty</td>
+                    <td id="s-r-ew"></td>
+                    <td id="s-r-ea"></td>
+                    <td id="s-r-em"></td>
+                </tr>
+                <tr>
+                    <td id="s-r-pic-label">PIC</td>
+                    <td id="s-r-picw"></td>
+                    <td>37</td>
+                    <td id="s-r-picm"></td>
+                </tr>
+                <tr>
+                    <td id="s-r-train-label">Trainee</td>
+                    <td id="s-r-trainw"></td>
+                    <td>37</td>
+                    <td id="s-r-trainm"></td>
+                </tr>
+                <tr>
+                    <td id="s-r-fuel-label">Fuel</td>
+                    <td id="s-r-fuelw"></td>
+                    <td>48</td>
+                    <td id="s-r-fuelm"></td>
+                </tr>
+                <tr>
+                    <th>TOTAL</th>
+                    <th id="s-r-tw"></th>
+                    <th>--</th>
+                    <th id="s-r-tm"></th>
+                </tr>
+            </table>
+            <div class="cg-result">CG: <span id="s-r-cg"></span> in.</div>
+        </div>
     </div>
 
-    <div class="input-group">
-        <label>Trainee Weight (lbs):</label>
-        <input type="number" id="trainee-weight" placeholder="Can be 0">
+    <!-- ========================================== -->
+    <!-- MULTI ENGINE SCREEN -->
+    <!-- ========================================== -->
+    <div id="screen-multi" class="app-screen">
+        <div class="nav-bar">
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
+            <h2>Multi Engine</h2>
+        </div>
+
+        <div class="input-group">
+            <label>PIC Weight (kg):</label>
+            <input type="number" id="m-pic-weight" placeholder="Must be greater than 0">
+        </div>
+        <div class="input-group">
+            <label>Trainee 1 Weight (kg):</label>
+            <input type="number" id="m-t1-weight" placeholder="Must be greater than 0">
+        </div>
+        <div class="input-group">
+            <label>Trainee 2 Weight (kg):</label>
+            <input type="number" id="m-t2-weight" placeholder="Can be 0">
+        </div>
+        <div class="input-group">
+            <label>Fuel (Liters):</label>
+            <input type="number" id="m-fuel-liters" placeholder="Enter fuel in Liters">
+        </div>
+
+        <button class="calc-btn" onclick="calculateMultiWB()">Calculate Multi</button>
+        <div id="m-error-msg" class="error"></div>
+
+        <div id="m-results-container" class="results-container">
+            <table>
+                <tr>
+                    <th>Item</th>
+                    <th>Weight (lbs)</th>
+                    <th>Arm (in)</th>
+                    <th>Moment</th>
+                </tr>
+                <tr>
+                    <td>Basic Empty</td>
+                    <td>3341.80</td>
+                    <td>87.44</td>
+                    <td>292207.00</td>
+                </tr>
+                <tr>
+                    <td>Crew (All 3)</td>
+                    <td id="m-r-creww"></td>
+                    <td>85.50</td>
+                    <td id="m-r-crewm"></td>
+                </tr>
+                <tr class="subtotal">
+                    <td>Zero Fuel Mass</td>
+                    <td id="m-r-zfw"></td>
+                    <td>--</td>
+                    <td id="m-r-zfm"></td>
+                </tr>
+                <tr>
+                    <td>Fuel</td>
+                    <td id="m-r-fuelw"></td>
+                    <td>93.60</td>
+                    <td id="m-r-fuelm"></td>
+                </tr>
+                <tr class="subtotal">
+                    <td>Ramp Weight</td>
+                    <td id="m-r-ramp-w"></td>
+                    <td>--</td>
+                    <td id="m-r-ramp-m"></td>
+                </tr>
+                <tr>
+                    <td>Taxi Allowance</td>
+                    <td>-23.00</td>
+                    <td>93.60</td>
+                    <td>-2153.00</td>
+                </tr>
+                <tr class="subtotal">
+                    <td>TAKEOFF WT</td>
+                    <td id="m-r-tow"></td>
+                    <td>--</td>
+                    <td id="m-r-tom"></td>
+                </tr>
+            </table>
+            <div class="cg-result">Takeoff CG: <span id="m-r-cg"></span> in.</div>
+        </div>
     </div>
 
-    <div class="input-group">
-        <label>Fuel (Liters):</label>
-        <input type="number" id="fuel-liters" placeholder="Enter usable fuel in Liters">
-    </div>
-
-    <button onclick="calculateWB()">Calculate</button>
-
-    <div id="error-msg" class="error"></div>
-
-    <div id="results-container">
-        <table>
-            <tr>
-                <th>Item</th>
-                <th>Weight (lbs)</th>
-                <th>Arm (in)</th>
-                <th>Moment</th>
-            </tr>
-            <tr>
-                <td>Basic Empty</td>
-                <td id="r-ew"></td>
-                <td id="r-ea"></td>
-                <td id="r-em"></td>
-            </tr>
-            <tr>
-                <td>PIC</td>
-                <td id="r-picw"></td>
-                <td>37</td>
-                <td id="r-picm"></td>
-            </tr>
-            <tr>
-                <td>Trainee</td>
-                <td id="r-trainw"></td>
-                <td>37</td>
-                <td id="r-trainm"></td>
-            </tr>
-            <tr>
-                <td id="r-fuel-label">Fuel</td>
-                <td id="r-fuelw"></td>
-                <td>48</td>
-                <td id="r-fuelm"></td>
-            </tr>
-            <tr>
-                <th>TOTAL</th>
-                <th id="r-tw"></th>
-                <th>--</th>
-                <th id="r-tm"></th>
-            </tr>
-        </table>
-        
-        <div class="cg-result">CG: <span id="r-cg"></span> in.</div>
-    </div>
-
+    <!-- ========================================== -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ========================================== -->
     <script>
-        // --- PUT YOUR 4 AIRCRAFT DATA HERE (3 Letters Each) ---
+        // Screen Navigation
+        function switchScreen(screenId) {
+            document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            document.getElementById('s-results-container').style.display = 'none';
+            document.getElementById('m-results-container').style.display = 'none';
+            document.getElementById('s-error-msg').style.display = 'none';
+            document.getElementById('m-error-msg').style.display = 'none';
+        }
+
+        // --- SINGLE ENGINE LOGIC ---
         const fleetData = {
             "AAQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
             "AAO": { emptyWeight: 1672.66, emptyArm: 39.0 },
@@ -155,81 +303,137 @@
             "JSN": { emptyWeight: 1695.88, emptyArm: 39.34 }
         };
 
-        function calculateWB() {
-            // 1. Clear previous errors & results
-            document.getElementById('error-msg').style.display = 'none';
-            document.getElementById('results-container').style.display = 'none';
+        function calculateSingleWB() {
+            document.getElementById('s-error-msg').style.display = 'none';
+            document.getElementById('s-results-container').style.display = 'none';
 
-            // 2. Grab inputs
-            let acId = document.getElementById('ac-id').value.trim();
-            let picWeight = parseFloat(document.getElementById('pic-weight').value);
-            let traineeWeight = parseFloat(document.getElementById('trainee-weight').value);
-            let fuelLiters = parseFloat(document.getElementById('fuel-liters').value);
+            let acId = document.getElementById('s-ac-id').value.trim();
+            let picKg = parseFloat(document.getElementById('s-pic-weight').value);
+            let traineeKg = parseFloat(document.getElementById('s-trainee-weight').value);
+            let fuelLiters = parseFloat(document.getElementById('s-fuel-liters').value);
 
-            // Handle empty Trainee or Fuel as 0
-            if (isNaN(traineeWeight)) traineeWeight = 0;
+            if (isNaN(traineeKg)) traineeKg = 0;
             if (isNaN(fuelLiters)) fuelLiters = 0;
 
-            // 3. Validations
             if (!fleetData[acId]) {
-                // Generates the error dynamically based on your 4 fleet codes
                 let validCodes = Object.keys(fleetData).join(", ");
-                showError("Invalid Registration! Please enter a valid 3-letter code from your fleet (" + validCodes + ").");
+                let err = document.getElementById('s-error-msg');
+                err.innerText = "Invalid Registration! Please enter a valid 3-letter code (" + validCodes + ").";
+                err.style.display = 'block';
                 return;
             }
-            if (isNaN(picWeight) || picWeight <= 0) {
-                showError("Error: PIC Weight must be greater than 0.");
+            if (isNaN(picKg) || picKg <= 0) {
+                let err = document.getElementById('s-error-msg');
+                err.innerText = "Error: PIC Weight must be greater than 0 kg.";
+                err.style.display = 'block';
                 return;
             }
 
-            // 4. Aircraft Basic Empty Calculations
+            // Convert kg to lbs
+            const kgToLbs = 2.20462;
+            let picWeight = picKg * kgToLbs;
+            let traineeWeight = traineeKg * kgToLbs;
+
             let ac = fleetData[acId];
             let basicMoment = ac.emptyWeight * ac.emptyArm;
-
-            // 5. PIC & Trainee Calculations (Multiplier: 37)
             let picMoment = picWeight * 37;
             let traineeMoment = traineeWeight * 37;
-
-            // 6. Fuel Calculations
+            
             let fuelGallons = fuelLiters / 3.8;
             let fuelWeight = fuelGallons * 6;
             let fuelMoment = fuelWeight * 48;
 
-            // 7. Vertically Add Columns
             let totalWeight = ac.emptyWeight + picWeight + traineeWeight + fuelWeight;
             let totalMoment = basicMoment + picMoment + traineeMoment + fuelMoment;
-
-            // 8. Calculate CG
             let cg = totalMoment / totalWeight;
 
-            // 9. Display the math visually
-            document.getElementById('r-ew').innerText = ac.emptyWeight.toFixed(2);
-            document.getElementById('r-ea').innerText = ac.emptyArm.toFixed(2);
-            document.getElementById('r-em').innerText = basicMoment.toFixed(2);
-
-            document.getElementById('r-picw').innerText = picWeight.toFixed(2);
-            document.getElementById('r-picm').innerText = picMoment.toFixed(2);
-
-            document.getElementById('r-trainw').innerText = traineeWeight.toFixed(2);
-            document.getElementById('r-trainm').innerText = traineeMoment.toFixed(2);
+            // Display math visually
+            document.getElementById('s-r-ew').innerText = ac.emptyWeight.toFixed(2);
+            document.getElementById('s-r-ea').innerText = ac.emptyArm.toFixed(2);
+            document.getElementById('s-r-em').innerText = basicMoment.toFixed(2);
             
-            document.getElementById('r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " US GAL)";
-            document.getElementById('r-fuelw').innerText = fuelWeight.toFixed(2);
-            document.getElementById('r-fuelm').innerText = fuelMoment.toFixed(2);
-
-            document.getElementById('r-tw').innerText = totalWeight.toFixed(2);
-            document.getElementById('r-tm').innerText = totalMoment.toFixed(2);
+            document.getElementById('s-r-pic-label').innerText = "PIC (" + picKg.toFixed(2) + " kg)";
+            document.getElementById('s-r-picw').innerText = picWeight.toFixed(2);
+            document.getElementById('s-r-picm').innerText = picMoment.toFixed(2);
             
-            document.getElementById('r-cg').innerText = cg.toFixed(2);
+            document.getElementById('s-r-train-label').innerText = "Trainee (" + traineeKg.toFixed(2) + " kg)";
+            document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
+            document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
+            
+            document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " US GAL)";
+            document.getElementById('s-r-fuelw').innerText = fuelWeight.toFixed(2);
+            document.getElementById('s-r-fuelm').innerText = fuelMoment.toFixed(2);
 
-            // Show results
-            document.getElementById('results-container').style.display = 'block';
+            document.getElementById('s-r-tw').innerText = totalWeight.toFixed(2);
+            document.getElementById('s-r-tm').innerText = totalMoment.toFixed(2);
+            document.getElementById('s-r-cg').innerText = cg.toFixed(2);
+
+            document.getElementById('s-results-container').style.display = 'block';
         }
 
-        function showError(msg) {
-            let errorDiv = document.getElementById('error-msg');
-            errorDiv.innerText = msg;
-            errorDiv.style.display = 'block';
+        // --- MULTI ENGINE LOGIC ---
+        function calculateMultiWB() {
+            document.getElementById('m-error-msg').style.display = 'none';
+            document.getElementById('m-results-container').style.display = 'none';
+
+            let picKg = parseFloat(document.getElementById('m-pic-weight').value);
+            let t1Kg = parseFloat(document.getElementById('m-t1-weight').value);
+            let t2Kg = parseFloat(document.getElementById('m-t2-weight').value);
+            let fuelLiters = parseFloat(document.getElementById('m-fuel-liters').value);
+
+            if (isNaN(t2Kg)) t2Kg = 0;
+            if (isNaN(fuelLiters)) fuelLiters = 0;
+
+            if (isNaN(picKg) || picKg <= 0) {
+                let err = document.getElementById('m-error-msg');
+                err.innerText = "Error: PIC Weight must be greater than 0 kg.";
+                err.style.display = 'block';
+                return;
+            }
+            if (isNaN(t1Kg) || t1Kg <= 0) {
+                let err = document.getElementById('m-error-msg');
+                err.innerText = "Error: Trainee 1 Weight must be greater than 0 kg.";
+                err.style.display = 'block';
+                return;
+            }
+
+            const kgToLbs = 2.20462;
+            let pic = picKg * kgToLbs;
+            let t1 = t1Kg * kgToLbs;
+            let t2 = t2Kg * kgToLbs;
+            
+            let fuelGal = fuelLiters / 3.785;
+            let fuel = fuelGal * 6.0;
+
+            const bewWeight = 3341.80;
+            const bewMoment = 292207.00;
+            const taxiWeight = -23.00;
+            const taxiMoment = -2153.00;
+
+            let crewWeight = pic + t1 + t2;
+            let crewMoment = crewWeight * 85.5;
+            let zeroFuelWeight = bewWeight + crewWeight;
+            let zeroFuelMoment = bewMoment + crewMoment;
+            let fuelMoment = fuel * 93.6;
+            let rampWeight = zeroFuelWeight + fuel;
+            let rampMoment = zeroFuelMoment + fuelMoment;
+            let takeoffWeight = rampWeight + taxiWeight;
+            let takeoffMoment = rampMoment + taxiMoment;
+            let cg = takeoffMoment / takeoffWeight;
+
+            document.getElementById('m-r-creww').innerText = crewWeight.toFixed(2);
+            document.getElementById('m-r-crewm').innerText = crewMoment.toFixed(2);
+            document.getElementById('m-r-zfw').innerText = zeroFuelWeight.toFixed(2);
+            document.getElementById('m-r-zfm').innerText = zeroFuelMoment.toFixed(2);
+            document.getElementById('m-r-fuelw').innerText = fuel.toFixed(2);
+            document.getElementById('m-r-fuelm').innerText = fuelMoment.toFixed(2);
+            document.getElementById('m-r-ramp-w').innerText = rampWeight.toFixed(2);
+            document.getElementById('m-r-ramp-m').innerText = rampMoment.toFixed(2);
+            document.getElementById('m-r-tow').innerText = takeoffWeight.toFixed(2);
+            document.getElementById('m-r-tom').innerText = takeoffMoment.toFixed(2);
+            document.getElementById('m-r-cg').innerText = cg.toFixed(2);
+
+            document.getElementById('m-results-container').style.display = 'block';
         }
     </script>
 </body>
