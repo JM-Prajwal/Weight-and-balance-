@@ -98,11 +98,11 @@
             </div>
             <div class="input-group">
                 <label>Wind Dir (°):</label>
-                <input type="number" id="wdir" placeholder="e.g. 220">
+                <input type="number" id="wdir" placeholder="e.g. 281">
             </div>
             <div class="input-group">
                 <label>Wind Spd (kt):</label>
-                <input type="number" id="wspd" placeholder="e.g. 3">
+                <input type="number" id="wspd" placeholder="e.g. 5">
             </div>
         </div>
     </div>
@@ -116,7 +116,6 @@
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
-                <!-- Fixed to 289 -->
                 <input type="number" id="elev" value="289" readonly style="background-color: #e9ecef;">
             </div>
         </div>
@@ -207,12 +206,13 @@
                     document.getElementById('wdir').value = current.wind_direction_10m;
                     document.getElementById('wspd').value = Math.round(current.wind_speed_10m);
                     
-                    // Convert Mean Sea Level Pressure (hPa) to inHg for accurate QNH
-                    let qnhInHg = current.pressure_msl * 0.02953;
+                    // FIXED: Round hPa to a whole number FIRST to match aviation charts
+                    let wholeHpa = Math.round(current.pressure_msl);
+                    let qnhInHg = wholeHpa * 0.02953;
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
 
                     let mBox = document.getElementById('metar-display');
-                    mBox.innerText = `✅ Live weather loaded for Mehsana\n(Based on ${current.pressure_msl} hPa)`;
+                    mBox.innerText = `✅ Live weather loaded for Mehsana\n(Based on exactly ${wholeHpa} hPa)`;
                     mBox.style.display = "block";
                 } else {
                     alert("Could not load weather data.");
@@ -278,27 +278,25 @@
                 return alert("Please fill in all numerical fields.");
             }
 
-            // === EXACT CX-3 PHYSICS FORMULAS ===
-            
-            // 1. Exact Pressure Altitude
+            // 1. Exact CX-3 Pressure Altitude
             let pressAlt = elev + 145442.16 * (1 - Math.pow(qnh / 29.92, 0.190261));
             
-            // 2. Exact Density Altitude (Using Kelvin and Absolute Pressure Ratio)
+            // 2. Exact CX-3 Density Altitude
             let oatK = oat + 273.15;
             let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
             let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
-            // Wind calculations
+            // 3. EXACT WIND CALCULATIONS (Decimals matched to CX-3)
             let angle = wdir - rwy;
             let angleRad = angle * (Math.PI / 180);
-            let headwind = Math.round(wspd * Math.cos(angleRad));
-            let crosswind = Math.abs(Math.round(wspd * Math.sin(angleRad)));
+            let headwind = wspd * Math.cos(angleRad);
+            let crosswind = Math.abs(wspd * Math.sin(angleRad));
 
             // Interpolation based on the exact Pressure Altitude
             let toBase = interpolatePOH(model, "TO", pressAlt, oat);
             let ldBase = interpolatePOH(model, "LD", pressAlt, oat);
 
-            // Apply POH Wind Corrections
+            // Apply POH Wind Corrections (Using precise floating point numbers)
             let toWindFactor = 1.0;
             let ldWindFactor = 1.0;
 
@@ -321,11 +319,12 @@
             document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
             document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
             
-            let hwText = headwind >= 0 ? headwind + " kts (Headwind)" : Math.abs(headwind) + " kts (Tailwind)";
+            // Output Winds with exact 2 decimal precision like CX-3
+            let hwText = headwind >= 0 ? headwind.toFixed(2) + " KTS (Headwind)" : Math.abs(headwind).toFixed(2) + " KTS (Tailwind)";
             let hwColor = headwind >= 0 ? "#28a745" : "#d9534f";
             document.getElementById('res-hw').innerText = hwText;
             document.getElementById('res-hw').style.color = hwColor;
-            document.getElementById('res-xw').innerText = crosswind + " kts";
+            document.getElementById('res-xw').innerText = crosswind.toFixed(2) + " KTS";
 
             document.getElementById('res-to-roll').innerText = toRollFinal + " ft";
             document.getElementById('res-to-50').innerText = to50Final + " ft";
