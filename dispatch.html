@@ -60,11 +60,11 @@
             background-color: #e9ecef;
             padding: 10px;
             border-radius: 8px;
-            font-family: monospace;
             font-size: 14px;
-            word-wrap: break-word;
             margin-bottom: 10px;
             display: none;
+            color: #333;
+            text-align: center;
         }
 
         /* Results Styling */
@@ -80,25 +80,13 @@
 </head>
 <body>
 
-    <h2>Live Performance</h2>
+    <h2>Mehsana Performance</h2>
 
     <!-- Weather Fetcher -->
     <div class="card">
-        <div class="grid-2">
-            <div class="input-group">
-                <label>ICAO Station:</label>
-                <input type="text" id="icao" value="VAAH" maxlength="4" oninput="this.value = this.value.toUpperCase()">
-            </div>
-            <div class="input-group">
-                <label>&nbsp;</label>
-                <button class="btn btn-fetch" onclick="fetchLiveMetar()">Fetch METAR</button>
-            </div>
-        </div>
+        <button class="btn btn-fetch" onclick="fetchMehsanaWeather()">Fetch Live Mehsana Weather</button>
         <div id="metar-display" class="metar-box"></div>
-    </div>
-
-    <!-- Manual / Auto Inputs -->
-    <div class="card">
+        
         <div class="grid-2">
             <div class="input-group">
                 <label>Temp (°C):</label>
@@ -128,7 +116,8 @@
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
-                <input type="number" id="elev" placeholder="e.g. 189">
+                <!-- Fixed to 289 per your requirement -->
+                <input type="number" id="elev" value="289" readonly style="background-color: #e9ecef;">
             </div>
         </div>
         <div class="input-group">
@@ -141,7 +130,7 @@
         <button class="btn btn-calc" onclick="calculatePerformance()">Calculate Performance</button>
     </div>
 
-    <!-- Results Section matching 1000125553.jpg -->
+    <!-- Results Section -->
     <div id="results">
         <div class="res-header">Performance Calculation</div>
         <div class="res-body">
@@ -161,7 +150,7 @@
     </div>
 
     <script>
-        // POH DATA EMBEDDED (Extracted directly from your images up to 4000ft)
+        // POH DATA (Extracted from 1000114361, 1000114363, 1000114365, 1000114367)
         const poh = {
             "172R": {
                 "TO": {
@@ -197,58 +186,49 @@
             }
         };
 
-        // 1. Fetch Live METAR
-        async function fetchLiveMetar() {
-            let icao = document.getElementById('icao').value.trim();
-            if(!icao) return alert("Enter an ICAO code!");
-            
+        // 1. Fetch Live Weather via GPS Coordinates for Mehsana (No API Key Needed!)
+        async function fetchMehsanaWeather() {
             let btn = document.querySelector('.btn-fetch');
             btn.innerText = "Fetching...";
             
             try {
-                let response = await fetch(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`);
+                // Mehsana Airport exact coordinates
+                let lat = 23.6333;
+                let lon = 72.3917;
+                
+                // Open-Meteo API allows free, keyless weather fetching directly in the browser
+                let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,surface_pressure,wind_speed_10m,wind_direction_10m&wind_speed_unit=kn`;
+                
+                let response = await fetch(url);
                 let data = await response.json();
                 
-                if(data && data.length > 0) {
-                    let obs = data[0];
+                if(data && data.current) {
+                    let current = data.current;
                     
-                    // Display raw METAR
-                    let mBox = document.getElementById('metar-display');
-                    mBox.innerText = obs.rawOb;
-                    mBox.style.display = "block";
+                    document.getElementById('oat').value = current.temperature_2m;
+                    document.getElementById('wdir').value = current.wind_direction_10m;
+                    document.getElementById('wspd').value = Math.round(current.wind_speed_10m);
                     
-                    // Fill inputs
-                    document.getElementById('oat').value = obs.temp;
-                    document.getElementById('wdir').value = (obs.wdir === "VRB") ? 0 : obs.wdir;
-                    document.getElementById('wspd').value = obs.wspd;
-                    
-                    // Parse QNH properly to inHg
-                    let qnhInHg = 29.92;
-                    let qnhMatch = obs.rawOb.match(/Q(\d{4})/);
-                    let altMatch = obs.rawOb.match(/A(\d{4})/);
-                    if (qnhMatch) {
-                        qnhInHg = parseInt(qnhMatch[1]) / 33.8639;
-                    } else if (altMatch) {
-                        qnhInHg = parseInt(altMatch[1]) / 100.0;
-                    } else if (obs.altim) {
-                        qnhInHg = obs.altim / 33.8639; 
-                    }
+                    // Convert hPa (millibars) to inHg for aviation QNH
+                    let qnhInHg = current.surface_pressure * 0.02953;
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
-                    
+
+                    let mBox = document.getElementById('metar-display');
+                    mBox.innerText = "✅ Live weather loaded for Mehsana (Lat: 23.63, Lon: 72.39)";
+                    mBox.style.display = "block";
                 } else {
-                    alert("No METAR found for " + icao);
+                    alert("Could not load weather data.");
                 }
             } catch (err) {
                 alert("Error connecting to weather server.");
             }
-            btn.innerText = "Fetch METAR";
+            btn.innerText = "Fetch Live Mehsana Weather";
         }
 
         // 2. Perform Notebook Interpolation
         function interpolatePOH(model, operation, pressAlt, temp) {
             let table = poh[model][operation];
             
-            // Clamp limits to table boundaries
             if(pressAlt < 0) pressAlt = 0;
             if(pressAlt > 4000) pressAlt = 4000;
             if(temp < 0) temp = 0;
@@ -262,7 +242,6 @@
             let tempHigh = tempLow + 10;
             if (tempHigh > 40) tempHigh = 40;
 
-            // Step A: Interpolate Temperature exactly like your notebook
             function interpTempAtAlt(a) {
                 let vL = table[a][tempLow];
                 let vH = table[a][tempHigh];
@@ -278,7 +257,6 @@
             let valAltLow = interpTempAtAlt(altLow);
             let valAltHigh = interpTempAtAlt(altHigh);
 
-            // Step B: Interpolate Altitude exactly like your notebook
             if (altLow === altHigh) return valAltLow;
             let altRatio = (pressAlt - altLow) / 1000.0;
             
@@ -302,50 +280,39 @@
                 return alert("Please fill in all numerical fields.");
             }
 
-            // A. Pressure Altitude Calculation
             let pressAlt = elev + (29.92 - qnh) * 1000;
-            
-            // B. Density Altitude Calculation
             let standardTemp = 15 - (2 * (pressAlt / 1000));
             let densAlt = pressAlt + (120 * (oat - standardTemp));
 
-            // C. Wind Triangles (Crosswind / Headwind)
             let angle = wdir - rwy;
             let angleRad = angle * (Math.PI / 180);
             let headwind = Math.round(wspd * Math.cos(angleRad));
             let crosswind = Math.abs(Math.round(wspd * Math.sin(angleRad)));
 
-            // D. Extract base numbers via Interpolation
             let toBase = interpolatePOH(model, "TO", pressAlt, oat);
             let ldBase = interpolatePOH(model, "LD", pressAlt, oat);
 
-            // E. Apply Wind Corrections (From POH Notes)
             let toWindFactor = 1.0;
             let ldWindFactor = 1.0;
 
             if (headwind > 0) {
-                // Decrease distances 10% for each 9 knots headwind
                 toWindFactor = 1.0 - ((headwind / 9.0) * 0.10);
                 ldWindFactor = 1.0 - ((headwind / 9.0) * 0.10);
             } else if (headwind < 0) {
-                // Increase distances 10% for each 2 knots tailwind
                 let tailwind = Math.abs(headwind);
                 toWindFactor = 1.0 + ((tailwind / 2.0) * 0.10);
                 ldWindFactor = 1.0 + ((tailwind / 2.0) * 0.10);
             }
 
-            // F. Final Numbers
             let toRollFinal = Math.round(toBase.r * toWindFactor);
             let to50Final = Math.round(toBase.t * toWindFactor);
             
             let ldRollFinal = Math.round(ldBase.r * ldWindFactor);
             let ld50Final = Math.round(ldBase.t * ldWindFactor);
 
-            // Display Results
             document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
             document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
             
-            // Format HW/TW Text
             let hwText = headwind >= 0 ? headwind + " kts (Headwind)" : Math.abs(headwind) + " kts (Tailwind)";
             let hwColor = headwind >= 0 ? "#28a745" : "#d9534f";
             document.getElementById('res-hw').innerText = hwText;
