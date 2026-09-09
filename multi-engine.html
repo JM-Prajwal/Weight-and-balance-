@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Engine W&B (VT-AET)</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h2 { text-align: center; margin-bottom: 5px; }
+        h4 { text-align: center; color: #555; margin-top: 0; margin-bottom: 20px; }
+        
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px; 
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #004494; }
+        
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th { background-color: #f2f2f2; }
+        .subtotal { background-color: #e9ecef; font-weight: bold; }
+        
+        #results-container { display: none; }
+        .cg-result {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Weight & Balance</h2>
+    <h4>Piper Seneca IV (VT-AET)</h4>
+
+    <div class="input-group">
+        <label>PIC Weight (lbs):</label>
+        <input type="number" id="pic-weight" placeholder="Must be greater than 0">
+    </div>
+
+    <div class="input-group">
+        <label>Trainee 1 Weight (lbs):</label>
+        <input type="number" id="t1-weight" placeholder="Must be greater than 0">
+    </div>
+
+    <div class="input-group">
+        <label>Trainee 2 Weight (lbs):</label>
+        <input type="number" id="t2-weight" placeholder="Can be 0">
+    </div>
+
+    <div class="input-group">
+        <label>Fuel (lbs):</label>
+        <input type="number" id="fuel-weight" placeholder="Enter fuel weight in lbs">
+    </div>
+
+    <button onclick="calculateMultiWB()">Calculate</button>
+
+    <div id="error-msg" class="error"></div>
+
+    <div id="results-container">
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Weight (lbs)</th>
+                <th>Arm (in)</th>
+                <th>Moment</th>
+            </tr>
+            <tr>
+                <td>Basic Empty</td>
+                <td>3341.80</td>
+                <td>87.44</td>
+                <td>292207.00</td>
+            </tr>
+            <tr>
+                <td>Crew (All 3)</td>
+                <td id="r-creww"></td>
+                <td>85.50</td>
+                <td id="r-crewm"></td>
+            </tr>
+            <tr class="subtotal">
+                <td>Zero Fuel Mass</td>
+                <td id="r-zfw"></td>
+                <td>--</td>
+                <td id="r-zfm"></td>
+            </tr>
+            <tr>
+                <td>Fuel</td>
+                <td id="r-fuelw"></td>
+                <td>93.60</td>
+                <td id="r-fuelm"></td>
+            </tr>
+            <tr class="subtotal">
+                <td>Ramp Weight</td>
+                <td id="r-ramp-w"></td>
+                <td>--</td>
+                <td id="r-ramp-m"></td>
+            </tr>
+            <tr>
+                <td>Taxi Allowance</td>
+                <td>-23.00</td>
+                <td>93.60</td>
+                <td>-2153.00</td>
+            </tr>
+            <tr class="subtotal">
+                <td>TAKEOFF WT</td>
+                <td id="r-tow"></td>
+                <td>--</td>
+                <td id="r-tom"></td>
+            </tr>
+        </table>
+        
+        <div class="cg-result">Takeoff CG: <span id="r-cg"></span> in.</div>
+    </div>
+
+    <script>
+        function calculateMultiWB() {
+            // 1. Clear previous errors & results
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+
+            // 2. Grab inputs
+            let pic = parseFloat(document.getElementById('pic-weight').value);
+            let t1 = parseFloat(document.getElementById('t1-weight').value);
+            let t2 = parseFloat(document.getElementById('t2-weight').value);
+            let fuel = parseFloat(document.getElementById('fuel-weight').value);
+
+            // Handle empty fields
+            if (isNaN(t2)) t2 = 0;
+            if (isNaN(fuel)) fuel = 0;
+
+            // 3. Validations
+            if (isNaN(pic) || pic <= 0) {
+                showError("Error: PIC Weight must be greater than 0.");
+                return;
+            }
+            if (isNaN(t1) || t1 <= 0) {
+                showError("Error: Trainee 1 Weight must be greater than 0.");
+                return;
+            }
+
+            // 4. Constants
+            const bewWeight = 3341.80;
+            const bewMoment = 292207.00;
+            const taxiWeight = -23.00;
+            const taxiMoment = -2153.00;
+
+            // 5. Crew Calculations (Combined)
+            let crewWeight = pic + t1 + t2;
+            let crewMoment = crewWeight * 85.5;
+
+            // 6. Zero Fuel Mass
+            let zeroFuelWeight = bewWeight + crewWeight;
+            let zeroFuelMoment = bewMoment + crewMoment;
+
+            // 7. Fuel Calculations
+            let fuelMoment = fuel * 93.6;
+
+            // 8. Ramp Weight
+            let rampWeight = zeroFuelWeight + fuel;
+            let rampMoment = zeroFuelMoment + fuelMoment;
+
+            // 9. Takeoff Weight
+            let takeoffWeight = rampWeight + taxiWeight;
+            let takeoffMoment = rampMoment + taxiMoment;
+
+            // 10. Calculate CG
+            let cg = takeoffMoment / takeoffWeight;
+
+            // 11. Display values
+            document.getElementById('r-creww').innerText = crewWeight.toFixed(2);
+            document.getElementById('r-crewm').innerText = crewMoment.toFixed(2);
+
+            document.getElementById('r-zfw').innerText = zeroFuelWeight.toFixed(2);
+            document.getElementById('r-zfm').innerText = zeroFuelMoment.toFixed(2);
+
+            document.getElementById('r-fuelw').innerText = fuel.toFixed(2);
+            document.getElementById('r-fuelm').innerText = fuelMoment.toFixed(2);
+
+            document.getElementById('r-ramp-w').innerText = rampWeight.toFixed(2);
+            document.getElementById('r-ramp-m').innerText = rampMoment.toFixed(2);
+
+            document.getElementById('r-tow').innerText = takeoffWeight.toFixed(2);
+            document.getElementById('r-tom').innerText = takeoffMoment.toFixed(2);
+            
+            document.getElementById('r-cg').innerText = cg.toFixed(2);
+
+            // Show results
+            document.getElementById('results-container').style.display = 'block';
+        }
+
+        function showError(msg) {
+            let errorDiv = document.getElementById('error-msg');
+            errorDiv.innerText = msg;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
+
