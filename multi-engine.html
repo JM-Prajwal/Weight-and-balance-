@@ -80,23 +80,23 @@
     <h4>Piper Seneca IV (VT-AET)</h4>
 
     <div class="input-group">
-        <label>PIC Weight (lbs):</label>
+        <label>PIC Weight (kg):</label>
         <input type="number" id="pic-weight" placeholder="Must be greater than 0">
     </div>
 
     <div class="input-group">
-        <label>Trainee 1 Weight (lbs):</label>
+        <label>Trainee 1 Weight (kg):</label>
         <input type="number" id="t1-weight" placeholder="Must be greater than 0">
     </div>
 
     <div class="input-group">
-        <label>Trainee 2 Weight (lbs):</label>
+        <label>Trainee 2 Weight (kg):</label>
         <input type="number" id="t2-weight" placeholder="Can be 0">
     </div>
 
     <div class="input-group">
-        <label>Fuel (lbs):</label>
-        <input type="number" id="fuel-weight" placeholder="Enter fuel weight in lbs">
+        <label>Fuel (Liters):</label>
+        <input type="number" id="fuel-liters" placeholder="Enter fuel in Liters">
     </div>
 
     <button onclick="calculateMultiWB()">Calculate</button>
@@ -160,59 +160,60 @@
 
     <script>
         function calculateMultiWB() {
-            // 1. Clear previous errors & results
             document.getElementById('error-msg').style.display = 'none';
             document.getElementById('results-container').style.display = 'none';
 
-            // 2. Grab inputs
-            let pic = parseFloat(document.getElementById('pic-weight').value);
-            let t1 = parseFloat(document.getElementById('t1-weight').value);
-            let t2 = parseFloat(document.getElementById('t2-weight').value);
-            let fuel = parseFloat(document.getElementById('fuel-weight').value);
+            // 1. Grab inputs in kg and Liters
+            let picKg = parseFloat(document.getElementById('pic-weight').value);
+            let t1Kg = parseFloat(document.getElementById('t1-weight').value);
+            let t2Kg = parseFloat(document.getElementById('t2-weight').value);
+            let fuelLiters = parseFloat(document.getElementById('fuel-liters').value);
 
-            // Handle empty fields
-            if (isNaN(t2)) t2 = 0;
-            if (isNaN(fuel)) fuel = 0;
+            if (isNaN(t2Kg)) t2Kg = 0;
+            if (isNaN(fuelLiters)) fuelLiters = 0;
 
-            // 3. Validations
-            if (isNaN(pic) || pic <= 0) {
-                showError("Error: PIC Weight must be greater than 0.");
+            if (isNaN(picKg) || picKg <= 0) {
+                showError("Error: PIC Weight must be greater than 0 kg.");
                 return;
             }
-            if (isNaN(t1) || t1 <= 0) {
-                showError("Error: Trainee 1 Weight must be greater than 0.");
+            if (isNaN(t1Kg) || t1Kg <= 0) {
+                showError("Error: Trainee 1 Weight must be greater than 0 kg.");
                 return;
             }
 
-            // 4. Constants
+            // 2. Conversions
+            const kgToLbs = 2.20462;
+            let pic = picKg * kgToLbs;
+            let t1 = t1Kg * kgToLbs;
+            let t2 = t2Kg * kgToLbs;
+            
+            let fuelGal = fuelLiters / 3.785;
+            let fuel = fuelGal * 6.0;
+
+            // 3. Constants
             const bewWeight = 3341.80;
             const bewMoment = 292207.00;
             const taxiWeight = -23.00;
             const taxiMoment = -2153.00;
 
-            // 5. Crew Calculations (Combined)
+            // 4. Calculations
             let crewWeight = pic + t1 + t2;
             let crewMoment = crewWeight * 85.5;
 
-            // 6. Zero Fuel Mass
             let zeroFuelWeight = bewWeight + crewWeight;
             let zeroFuelMoment = bewMoment + crewMoment;
 
-            // 7. Fuel Calculations
             let fuelMoment = fuel * 93.6;
 
-            // 8. Ramp Weight
             let rampWeight = zeroFuelWeight + fuel;
             let rampMoment = zeroFuelMoment + fuelMoment;
 
-            // 9. Takeoff Weight
             let takeoffWeight = rampWeight + taxiWeight;
             let takeoffMoment = rampMoment + taxiMoment;
 
-            // 10. Calculate CG
             let cg = takeoffMoment / takeoffWeight;
 
-            // 11. Display values
+            // 5. Display values
             document.getElementById('r-creww').innerText = crewWeight.toFixed(2);
             document.getElementById('r-crewm').innerText = crewMoment.toFixed(2);
 
@@ -230,7 +231,6 @@
             
             document.getElementById('r-cg').innerText = cg.toFixed(2);
 
-            // Show results
             document.getElementById('results-container').style.display = 'block';
         }
 
@@ -242,4 +242,3 @@
     </script>
 </body>
 </html>
-
