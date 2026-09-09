@@ -65,6 +65,7 @@
             display: none;
             color: #333;
             text-align: center;
+            font-family: monospace;
         }
 
         /* Results Styling */
@@ -84,17 +85,17 @@
 
     <!-- Weather Fetcher -->
     <div class="card">
-        <button class="btn btn-fetch" onclick="fetchMehsanaWeather()">Fetch Live Mehsana Weather</button>
+        <button class="btn btn-fetch" onclick="fetchVAAHWeather()">Fetch VAAH Weather</button>
         <div id="metar-display" class="metar-box"></div>
         
         <div class="grid-2">
             <div class="input-group">
                 <label>Temp (°C):</label>
-                <input type="number" id="oat" placeholder="e.g. 29" step="0.1">
+                <input type="number" id="oat" placeholder="e.g. 33" step="0.1">
             </div>
             <div class="input-group">
                 <label>QNH (inHg):</label>
-                <input type="number" id="qnh" placeholder="e.g. 29.68" step="0.01">
+                <input type="number" id="qnh" placeholder="e.g. 29.75" step="0.01">
             </div>
             <div class="input-group">
                 <label>Wind Dir (°):</label>
@@ -111,8 +112,9 @@
     <div class="card">
         <div class="grid-2">
             <div class="input-group">
-                <label>Runway Hdg (°):</label>
-                <input type="number" id="rwy" placeholder="e.g. 230">
+                <label>Runway (2-Digit):</label>
+                <!-- Updated label to ask for 2 digits (e.g. 23) -->
+                <input type="number" id="rwy" placeholder="e.g. 23">
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
@@ -185,34 +187,35 @@
             }
         };
 
-        // 1. Fetch Live Weather via GPS using Mean Sea Level Pressure for QNH
-        async function fetchMehsanaWeather() {
+        // 1. Fetch exact VAAH METAR (Same data source as metar-taf.com)
+        async function fetchVAAHWeather() {
             let btn = document.querySelector('.btn-fetch');
             btn.innerText = "Fetching...";
             
             try {
-                let lat = 23.6333;
-                let lon = 72.3917;
-                
-                let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m&wind_speed_unit=kn`;
-                
+                // Using a public proxy to bypass CORS restrictions for GitHub Pages
+                let url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://aviationweather.gov/api/data/metar?ids=VAAH&format=json')}`;
                 let response = await fetch(url);
                 let data = await response.json();
                 
-                if(data && data.current) {
-                    let current = data.current;
+                if(data && data.length > 0) {
+                    let obs = data[0];
                     
-                    document.getElementById('oat').value = current.temperature_2m;
-                    document.getElementById('wdir').value = current.wind_direction_10m;
-                    document.getElementById('wspd').value = Math.round(current.wind_speed_10m);
+                    document.getElementById('oat').value = obs.temp;
+                    document.getElementById('wdir').value = (obs.wdir === "VRB") ? 0 : obs.wdir;
+                    document.getElementById('wspd').value = obs.wspd;
                     
-                    // FIXED: Round hPa to a whole number FIRST to match aviation charts
-                    let wholeHpa = Math.round(current.pressure_msl);
-                    let qnhInHg = wholeHpa * 0.02953;
+                    // Extract exactly the QNH (hPa) from the raw METAR string
+                    let qnhInHg = 29.92;
+                    let qnhMatch = obs.rawOb.match(/Q(\d{4})/);
+                    if (qnhMatch) {
+                        let hpa = parseInt(qnhMatch[1]);
+                        qnhInHg = hpa * 0.02953;
+                    }
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
 
                     let mBox = document.getElementById('metar-display');
-                    mBox.innerText = `✅ Live weather loaded for Mehsana\n(Based on exactly ${wholeHpa} hPa)`;
+                    mBox.innerText = `✅ VAAH Data Loaded\n${obs.rawOb}`;
                     mBox.style.display = "block";
                 } else {
                     alert("Could not load weather data.");
@@ -220,7 +223,7 @@
             } catch (err) {
                 alert("Error connecting to weather server.");
             }
-            btn.innerText = "Fetch Live Mehsana Weather";
+            btn.innerText = "Fetch VAAH Weather";
         }
 
         // 2. Perform Notebook Interpolation
@@ -270,33 +273,31 @@
             let qnh = parseFloat(document.getElementById('qnh').value);
             let wdir = parseFloat(document.getElementById('wdir').value);
             let wspd = parseFloat(document.getElementById('wspd').value);
-            let rwy = parseFloat(document.getElementById('rwy').value);
+            let rwyInput = parseFloat(document.getElementById('rwy').value);
             let elev = parseFloat(document.getElementById('elev').value);
             let model = document.getElementById('ac-model').value;
 
-            if (isNaN(oat) || isNaN(qnh) || isNaN(wdir) || isNaN(wspd) || isNaN(rwy) || isNaN(elev)) {
+            if (isNaN(oat) || isNaN(qnh) || isNaN(wdir) || isNaN(wspd) || isNaN(rwyInput) || isNaN(elev)) {
                 return alert("Please fill in all numerical fields.");
             }
 
-            // 1. Exact CX-3 Pressure Altitude
+            // EXACT CX-3 PHYSICS FORMULAS
             let pressAlt = elev + 145442.16 * (1 - Math.pow(qnh / 29.92, 0.190261));
             
-            // 2. Exact CX-3 Density Altitude
             let oatK = oat + 273.15;
             let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
             let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
-            // 3. EXACT WIND CALCULATIONS (Decimals matched to CX-3)
-            let angle = wdir - rwy;
+            // EXACT WIND CALCULATIONS (Using Runway * 10)
+            let rwyHeading = rwyInput * 10;
+            let angle = wdir - rwyHeading;
             let angleRad = angle * (Math.PI / 180);
             let headwind = wspd * Math.cos(angleRad);
             let crosswind = Math.abs(wspd * Math.sin(angleRad));
 
-            // Interpolation based on the exact Pressure Altitude
             let toBase = interpolatePOH(model, "TO", pressAlt, oat);
             let ldBase = interpolatePOH(model, "LD", pressAlt, oat);
 
-            // Apply POH Wind Corrections (Using precise floating point numbers)
             let toWindFactor = 1.0;
             let ldWindFactor = 1.0;
 
@@ -319,7 +320,6 @@
             document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
             document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
             
-            // Output Winds with exact 2 decimal precision like CX-3
             let hwText = headwind >= 0 ? headwind.toFixed(2) + " KTS (Headwind)" : Math.abs(headwind).toFixed(2) + " KTS (Tailwind)";
             let hwColor = headwind >= 0 ? "#28a745" : "#d9534f";
             document.getElementById('res-hw').innerText = hwText;
