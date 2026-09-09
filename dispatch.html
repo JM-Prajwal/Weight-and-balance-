@@ -111,8 +111,11 @@
     <div class="card">
         <div class="grid-2">
             <div class="input-group">
-                <label>Runway (2-Digit):</label>
-                <input type="number" id="rwy" placeholder="e.g. 23">
+                <label>Runway:</label>
+                <select id="rwy">
+                    <option value="230" selected>Runway 23</option>
+                    <option value="50">Runway 05</option>
+                </select>
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
@@ -269,11 +272,11 @@
             let qnh = parseFloat(document.getElementById('qnh').value);
             let wdir = parseFloat(document.getElementById('wdir').value);
             let wspd = parseFloat(document.getElementById('wspd').value);
-            let rwyInput = parseFloat(document.getElementById('rwy').value);
+            let rwyHeading = parseFloat(document.getElementById('rwy').value);
             let elev = parseFloat(document.getElementById('elev').value);
             let model = document.getElementById('ac-model').value;
 
-            if (isNaN(oat) || isNaN(qnh) || isNaN(wdir) || isNaN(wspd) || isNaN(rwyInput) || isNaN(elev)) {
+            if (isNaN(oat) || isNaN(qnh) || isNaN(wdir) || isNaN(wspd) || isNaN(rwyHeading) || isNaN(elev)) {
                 return alert("Please fill in all numerical fields.");
             }
 
@@ -284,11 +287,7 @@
             let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
             let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
-            let rwyHeading = rwyInput;
-            if (rwyInput <= 36) {
-                rwyHeading = rwyInput * 10;
-            }
-
+            // EXACT WIND CALCULATIONS using the fixed dropdown values
             let angle = wdir - rwyHeading;
             let angleRad = angle * (Math.PI / 180);
             
