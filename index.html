@@ -44,6 +44,10 @@
             text-align: center;
             margin-top: 15px;
             display: none;
+            padding: 10px;
+            border: 1px solid #d9534f;
+            border-radius: 8px;
+            background-color: #fdf5f5;
         }
 
         table {
@@ -75,8 +79,9 @@
     <h2>Weight & Balance</h2>
 
     <div class="input-group">
-        <label>Aircraft Registration (Last 2 letters):</label>
-        <input type="text" id="ac-id" maxlength="2" placeholder="e.g., AQ" oninput="this.value = this.value.toUpperCase()">
+        <label>Aircraft Registration (Last 3 letters):</label>
+        <!-- Changed to 3 letters -->
+        <input type="text" id="ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
     </div>
 
     <div class="input-group">
@@ -125,7 +130,7 @@
                 <td id="r-trainm"></td>
             </tr>
             <tr>
-                <td>Fuel</td>
+                <td id="r-fuel-label">Fuel</td>
                 <td id="r-fuelw"></td>
                 <td>48</td>
                 <td id="r-fuelm"></td>
@@ -142,12 +147,12 @@
     </div>
 
     <script>
-        // --- PUT YOUR 4 AIRCRAFT DATA HERE ---
+        // --- PUT YOUR 4 AIRCRAFT DATA HERE (3 Letters Each) ---
         const fleetData = {
-            "AQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
-            "AO": { emptyWeight: 1672.66, emptyArm: 39.0 },
-            "RM": { emptyWeight: 1693.68, emptyArm: 39.89 },
-            "SN": { emptyWeight: 1695.88, emptyArm: 39.34 }
+            "AAQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
+            "AAO": { emptyWeight: 1672.66, emptyArm: 39.0 },
+            "RRM": { emptyWeight: 1693.68, emptyArm: 39.89 },
+            "JSN": { emptyWeight: 1695.88, emptyArm: 39.34 }
         };
 
         function calculateWB() {
@@ -167,7 +172,9 @@
 
             // 3. Validations
             if (!fleetData[acId]) {
-                showError("Aircraft '" + acId + "' not found. Check the 2-letter code.");
+                // Generates the error dynamically based on your 4 fleet codes
+                let validCodes = Object.keys(fleetData).join(", ");
+                showError("Invalid Registration! Please enter a valid 3-letter code from your fleet (" + validCodes + ").");
                 return;
             }
             if (isNaN(picWeight) || picWeight <= 0) {
@@ -205,7 +212,8 @@
 
             document.getElementById('r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('r-trainm').innerText = traineeMoment.toFixed(2);
-
+            
+            document.getElementById('r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " US GAL)";
             document.getElementById('r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('r-fuelm').innerText = fuelMoment.toFixed(2);
 
@@ -226,4 +234,3 @@
     </script>
 </body>
 </html>
-
