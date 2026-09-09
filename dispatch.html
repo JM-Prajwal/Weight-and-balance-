@@ -90,7 +90,7 @@
         <div class="grid-2">
             <div class="input-group">
                 <label>Temp (°C):</label>
-                <input type="number" id="oat" placeholder="e.g. 29">
+                <input type="number" id="oat" placeholder="e.g. 29" step="0.1">
             </div>
             <div class="input-group">
                 <label>QNH (inHg):</label>
@@ -116,7 +116,7 @@
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
-                <!-- Fixed to 289 per your requirement -->
+                <!-- Fixed to 289 -->
                 <input type="number" id="elev" value="289" readonly style="background-color: #e9ecef;">
             </div>
         </div>
@@ -186,7 +186,7 @@
             }
         };
 
-        // 1. Fetch Live Weather via GPS (Fixed to use pressure_msl for QNH)
+        // 1. Fetch Live Weather via GPS using Mean Sea Level Pressure for QNH
         async function fetchMehsanaWeather() {
             let btn = document.querySelector('.btn-fetch');
             btn.innerText = "Fetching...";
@@ -195,7 +195,6 @@
                 let lat = 23.6333;
                 let lon = 72.3917;
                 
-                // Changed surface_pressure to pressure_msl
                 let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m&wind_speed_unit=kn`;
                 
                 let response = await fetch(url);
@@ -213,7 +212,7 @@
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
 
                     let mBox = document.getElementById('metar-display');
-                    mBox.innerText = "✅ Live weather loaded for Mehsana (Lat: 23.63, Lon: 72.39)";
+                    mBox.innerText = `✅ Live weather loaded for Mehsana\n(Based on ${current.pressure_msl} hPa)`;
                     mBox.style.display = "block";
                 } else {
                     alert("Could not load weather data.");
@@ -279,18 +278,27 @@
                 return alert("Please fill in all numerical fields.");
             }
 
-            let pressAlt = elev + (29.92 - qnh) * 1000;
-            let standardTemp = 15 - (2 * (pressAlt / 1000));
-            let densAlt = pressAlt + (120 * (oat - standardTemp));
+            // === EXACT CX-3 PHYSICS FORMULAS ===
+            
+            // 1. Exact Pressure Altitude
+            let pressAlt = elev + 145442.16 * (1 - Math.pow(qnh / 29.92, 0.190261));
+            
+            // 2. Exact Density Altitude (Using Kelvin and Absolute Pressure Ratio)
+            let oatK = oat + 273.15;
+            let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
+            let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
+            // Wind calculations
             let angle = wdir - rwy;
             let angleRad = angle * (Math.PI / 180);
             let headwind = Math.round(wspd * Math.cos(angleRad));
             let crosswind = Math.abs(Math.round(wspd * Math.sin(angleRad)));
 
+            // Interpolation based on the exact Pressure Altitude
             let toBase = interpolatePOH(model, "TO", pressAlt, oat);
             let ldBase = interpolatePOH(model, "LD", pressAlt, oat);
 
+            // Apply POH Wind Corrections
             let toWindFactor = 1.0;
             let ldWindFactor = 1.0;
 
@@ -309,6 +317,7 @@
             let ldRollFinal = Math.round(ldBase.r * ldWindFactor);
             let ld50Final = Math.round(ldBase.t * ldWindFactor);
 
+            // Display Results
             document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
             document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
             
