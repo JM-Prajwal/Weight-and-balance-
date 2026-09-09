@@ -111,8 +111,8 @@
     <div class="card">
         <div class="grid-2">
             <div class="input-group">
-                <label>Runway (2-Digit):</label>
-                <input type="number" id="rwy" placeholder="e.g. 23">
+                <label>Runway:</label>
+                <input type="number" id="rwy" placeholder="e.g. 23 or 230">
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
@@ -185,7 +185,7 @@
             }
         };
 
-        // 1. Fetch Live Weather via Open-Meteo
+        // 1. Fetch Live Weather via Open-Meteo for Mehsana
         async function fetchMehsanaWeather() {
             let btn = document.querySelector('.btn-fetch');
             btn.innerText = "Fetching...";
@@ -285,10 +285,15 @@
             let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
             let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
-            // EXACT WIND CALCULATIONS (Using Runway * 10)
-            let rwyHeading = rwyInput * 10;
+            // BUG FIX: Detect if they typed 23 or 230 to prevent 2300 degree math
+            let rwyHeading = rwyInput;
+            if (rwyInput <= 36) {
+                rwyHeading = rwyInput * 10;
+            }
+
             let angle = wdir - rwyHeading;
             let angleRad = angle * (Math.PI / 180);
+            
             let headwind = wspd * Math.cos(angleRad);
             let crosswind = Math.abs(wspd * Math.sin(angleRad));
 
