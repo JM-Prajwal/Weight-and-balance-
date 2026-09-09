@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>W&B Calculator</title>
     <style>
-        /* Mobile-first styling to ensure it works beautifully on all phones */
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             padding: 20px;
@@ -20,7 +19,7 @@
         input {
             width: 100%;
             padding: 12px;
-            font-size: 16px; /* Prevents iOS from zooming in */
+            font-size: 16px; 
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
@@ -47,7 +46,6 @@
             display: none;
         }
 
-        /* Table styling for the final vertical additions */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -115,10 +113,16 @@
                 <td id="r-em"></td>
             </tr>
             <tr>
-                <td>Front Row</td>
-                <td id="r-fw"></td>
+                <td>PIC</td>
+                <td id="r-picw"></td>
                 <td>37</td>
-                <td id="r-fm"></td>
+                <td id="r-picm"></td>
+            </tr>
+            <tr>
+                <td>Trainee</td>
+                <td id="r-trainw"></td>
+                <td>37</td>
+                <td id="r-trainm"></td>
             </tr>
             <tr>
                 <td>Fuel</td>
@@ -139,7 +143,6 @@
 
     <script>
         // --- PUT YOUR 4 AIRCRAFT DATA HERE ---
-        // I have added "AQ" based on your sheet. Replace XX, YY, and ZZ with your other 3 aircraft codes.
         const fleetData = {
             "AQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
             "AO": { emptyWeight: 1672.66, emptyArm: 39.0 },
@@ -176,19 +179,18 @@
             let ac = fleetData[acId];
             let basicMoment = ac.emptyWeight * ac.emptyArm;
 
-            // 5. Front Row Calculations (Multiplier: 37)
-            let frontWeight = picWeight + traineeWeight;
-            let frontMoment = frontWeight * 37;
+            // 5. PIC & Trainee Calculations (Multiplier: 37)
+            let picMoment = picWeight * 37;
+            let traineeMoment = traineeWeight * 37;
 
             // 6. Fuel Calculations
-            // As per 1000125501.jpg, Gallons = Liters / 3.8. Weight = Gallons * 6. Arm = 48.
             let fuelGallons = fuelLiters / 3.8;
             let fuelWeight = fuelGallons * 6;
             let fuelMoment = fuelWeight * 48;
 
             // 7. Vertically Add Columns
-            let totalWeight = ac.emptyWeight + frontWeight + fuelWeight;
-            let totalMoment = basicMoment + frontMoment + fuelMoment;
+            let totalWeight = ac.emptyWeight + picWeight + traineeWeight + fuelWeight;
+            let totalMoment = basicMoment + picMoment + traineeMoment + fuelMoment;
 
             // 8. Calculate CG
             let cg = totalMoment / totalWeight;
@@ -198,8 +200,11 @@
             document.getElementById('r-ea').innerText = ac.emptyArm.toFixed(2);
             document.getElementById('r-em').innerText = basicMoment.toFixed(2);
 
-            document.getElementById('r-fw').innerText = frontWeight.toFixed(2);
-            document.getElementById('r-fm').innerText = frontMoment.toFixed(2);
+            document.getElementById('r-picw').innerText = picWeight.toFixed(2);
+            document.getElementById('r-picm').innerText = picMoment.toFixed(2);
+
+            document.getElementById('r-trainw').innerText = traineeWeight.toFixed(2);
+            document.getElementById('r-trainm').innerText = traineeMoment.toFixed(2);
 
             document.getElementById('r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('r-fuelm').innerText = fuelMoment.toFixed(2);
@@ -221,3 +226,4 @@
     </script>
 </body>
 </html>
+
