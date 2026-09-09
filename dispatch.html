@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Performance Calculator</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h2 { text-align: center; margin-top: 0; color: #0056b3; }
+        
+        .card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .input-group { margin-bottom: 12px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px; 
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .btn-fetch { background-color: #17a2b8; }
+        .btn-fetch:hover { background-color: #138496; }
+        .btn-calc { background-color: #28a745; }
+        .btn-calc:hover { background-color: #218838; }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .metar-box {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        /* Results Styling */
+        #results { display: none; }
+        .res-header { background-color: #0056b3; color: white; padding: 10px; border-radius: 8px 8px 0 0; text-align: center; font-weight: bold; }
+        .res-body { border: 1px solid #0056b3; border-top: none; border-radius: 0 0 8px 8px; padding: 15px; background: white; }
+        .res-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;}
+        .res-val { font-weight: bold; color: #d9534f; }
+        .green-val { color: #28a745; }
+        
+        h3 { margin-top: 15px; margin-bottom: 5px; font-size: 16px; color: #333; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <h2>Live Performance</h2>
+
+    <!-- Weather Fetcher -->
+    <div class="card">
+        <div class="grid-2">
+            <div class="input-group">
+                <label>ICAO Station:</label>
+                <input type="text" id="icao" value="VAAH" maxlength="4" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="input-group">
+                <label>&nbsp;</label>
+                <button class="btn btn-fetch" onclick="fetchLiveMetar()">Fetch METAR</button>
+            </div>
+        </div>
+        <div id="metar-display" class="metar-box"></div>
+    </div>
+
+    <!-- Manual / Auto Inputs -->
+    <div class="card">
+        <div class="grid-2">
+            <div class="input-group">
+                <label>Temp (°C):</label>
+                <input type="number" id="oat" placeholder="e.g. 29">
+            </div>
+            <div class="input-group">
+                <label>QNH (inHg):</label>
+                <input type="number" id="qnh" placeholder="e.g. 29.68" step="0.01">
+            </div>
+            <div class="input-group">
+                <label>Wind Dir (°):</label>
+                <input type="number" id="wdir" placeholder="e.g. 220">
+            </div>
+            <div class="input-group">
+                <label>Wind Spd (kt):</label>
+                <input type="number" id="wspd" placeholder="e.g. 3">
+            </div>
+        </div>
+    </div>
+
+    <!-- Flight Parameters -->
+    <div class="card">
+        <div class="grid-2">
+            <div class="input-group">
+                <label>Runway Hdg (°):</label>
+                <input type="number" id="rwy" placeholder="e.g. 230">
+            </div>
+            <div class="input-group">
+                <label>Field Elev (ft):</label>
+                <input type="number" id="elev" placeholder="e.g. 189">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Aircraft Model:</label>
+            <select id="ac-model">
+                <option value="172R">Cessna 172R (2450 lbs)</option>
+                <option value="172S">Cessna 172S (2550 lbs)</option>
+            </select>
+        </div>
+        <button class="btn btn-calc" onclick="calculatePerformance()">Calculate Performance</button>
+    </div>
+
+    <!-- Results Section matching 1000125553.jpg -->
+    <div id="results">
+        <div class="res-header">Performance Calculation</div>
+        <div class="res-body">
+            <div class="res-row"><span>Pressure Altitude:</span> <span class="res-val" id="res-pa"></span></div>
+            <div class="res-row"><span>Density Altitude:</span> <span class="res-val" id="res-da"></span></div>
+            <div class="res-row"><span>Headwind (HW):</span> <span class="res-val green-val" id="res-hw"></span></div>
+            <div class="res-row"><span>Crosswind (XW):</span> <span class="res-val" id="res-xw"></span></div>
+            
+            <h3>Takeoff Distance</h3>
+            <div class="res-row"><span>Ground Roll:</span> <span class="res-val" id="res-to-roll"></span></div>
+            <div class="res-row"><span>50ft Obstacle:</span> <span class="res-val" id="res-to-50"></span></div>
+            
+            <h3>Landing Distance</h3>
+            <div class="res-row"><span>Ground Roll:</span> <span class="res-val" id="res-ld-roll"></span></div>
+            <div class="res-row"><span>50ft Obstacle:</span> <span class="res-val" id="res-ld-50"></span></div>
+        </div>
+    </div>
+
+    <script>
+        // POH DATA EMBEDDED (Extracted directly from your images up to 4000ft)
+        const poh = {
+            "172R": {
+                "TO": {
+                    0: {0: {r: 845, t: 1510}, 10: {r: 910, t: 1625}, 20: {r: 980, t: 1745}, 30: {r: 1055, t: 1875}, 40: {r: 1135, t: 2015}},
+                    1000: {0: {r: 925, t: 1660}, 10: {r: 1000, t: 1790}, 20: {r: 1075, t: 1925}, 30: {r: 1160, t: 2070}, 40: {r: 1245, t: 2220}},
+                    2000: {0: {r: 1015, t: 1830}, 10: {r: 1095, t: 1970}, 20: {r: 1185, t: 2125}, 30: {r: 1275, t: 2290}, 40: {r: 1365, t: 2455}},
+                    3000: {0: {r: 1115, t: 2020}, 10: {r: 1205, t: 2185}, 20: {r: 1305, t: 2360}, 30: {r: 1400, t: 2540}, 40: {r: 1505, t: 2730}},
+                    4000: {0: {r: 1230, t: 2245}, 10: {r: 1330, t: 2430}, 20: {r: 1435, t: 2630}, 30: {r: 1545, t: 2830}, 40: {r: 1655, t: 3045}}
+                },
+                "LD": {
+                    0: {0: {r: 525, t: 1250}, 10: {r: 540, t: 1280}, 20: {r: 560, t: 1310}, 30: {r: 580, t: 1340}, 40: {r: 600, t: 1370}},
+                    1000: {0: {r: 545, t: 1280}, 10: {r: 560, t: 1310}, 20: {r: 580, t: 1345}, 30: {r: 600, t: 1375}, 40: {r: 620, t: 1405}},
+                    2000: {0: {r: 565, t: 1310}, 10: {r: 585, t: 1345}, 20: {r: 605, t: 1375}, 30: {r: 625, t: 1410}, 40: {r: 645, t: 1440}},
+                    3000: {0: {r: 585, t: 1345}, 10: {r: 605, t: 1380}, 20: {r: 625, t: 1415}, 30: {r: 650, t: 1445}, 40: {r: 670, t: 1480}},
+                    4000: {0: {r: 605, t: 1380}, 10: {r: 630, t: 1415}, 20: {r: 650, t: 1450}, 30: {r: 670, t: 1485}, 40: {r: 695, t: 1520}}
+                }
+            },
+            "172S": {
+                "TO": {
+                    0: {0: {r: 860, t: 1465}, 10: {r: 925, t: 1575}, 20: {r: 995, t: 1690}, 30: {r: 1070, t: 1810}, 40: {r: 1150, t: 1945}},
+                    1000: {0: {r: 940, t: 1600}, 10: {r: 1010, t: 1720}, 20: {r: 1090, t: 1850}, 30: {r: 1170, t: 1990}, 40: {r: 1260, t: 2135}},
+                    2000: {0: {r: 1025, t: 1755}, 10: {r: 1110, t: 1890}, 20: {r: 1195, t: 2035}, 30: {r: 1285, t: 2190}, 40: {r: 1380, t: 2355}},
+                    3000: {0: {r: 1125, t: 1925}, 10: {r: 1215, t: 2080}, 20: {r: 1310, t: 2240}, 30: {r: 1410, t: 2420}, 40: {r: 1515, t: 2605}},
+                    4000: {0: {r: 1235, t: 2120}, 10: {r: 1335, t: 2295}, 20: {r: 1440, t: 2480}, 30: {r: 1550, t: 2685}, 40: {r: 1660, t: 2880}}
+                },
+                "LD": {
+                    0: {0: {r: 545, t: 1290}, 10: {r: 565, t: 1320}, 20: {r: 585, t: 1350}, 30: {r: 605, t: 1380}, 40: {r: 625, t: 1415}},
+                    1000: {0: {r: 565, t: 1320}, 10: {r: 585, t: 1350}, 20: {r: 605, t: 1385}, 30: {r: 625, t: 1420}, 40: {r: 650, t: 1450}},
+                    2000: {0: {r: 585, t: 1355}, 10: {r: 610, t: 1385}, 20: {r: 630, t: 1420}, 30: {r: 650, t: 1455}, 40: {r: 670, t: 1490}},
+                    3000: {0: {r: 610, t: 1385}, 10: {r: 630, t: 1425}, 20: {r: 655, t: 1460}, 30: {r: 675, t: 1495}, 40: {r: 695, t: 1530}},
+                    4000: {0: {r: 630, t: 1425}, 10: {r: 655, t: 1460}, 20: {r: 675, t: 1495}, 30: {r: 700, t: 1535}, 40: {r: 725, t: 1570}}
+                }
+            }
+        };
+
+        // 1. Fetch Live METAR
+        async function fetchLiveMetar() {
+            let icao = document.getElementById('icao').value.trim();
+            if(!icao) return alert("Enter an ICAO code!");
+            
+            let btn = document.querySelector('.btn-fetch');
+            btn.innerText = "Fetching...";
+            
+            try {
+                let response = await fetch(`https://aviationweather.gov/api/data/metar?ids=${icao}&format=json`);
+                let data = await response.json();
+                
+                if(data && data.length > 0) {
+                    let obs = data[0];
+                    
+                    // Display raw METAR
+                    let mBox = document.getElementById('metar-display');
+                    mBox.innerText = obs.rawOb;
+                    mBox.style.display = "block";
+                    
+                    // Fill inputs
+                    document.getElementById('oat').value = obs.temp;
+                    document.getElementById('wdir').value = (obs.wdir === "VRB") ? 0 : obs.wdir;
+                    document.getElementById('wspd').value = obs.wspd;
+                    
+                    // Parse QNH properly to inHg
+                    let qnhInHg = 29.92;
+                    let qnhMatch = obs.rawOb.match(/Q(\d{4})/);
+                    let altMatch = obs.rawOb.match(/A(\d{4})/);
+                    if (qnhMatch) {
+                        qnhInHg = parseInt(qnhMatch[1]) / 33.8639;
+                    } else if (altMatch) {
+                        qnhInHg = parseInt(altMatch[1]) / 100.0;
+                    } else if (obs.altim) {
+                        qnhInHg = obs.altim / 33.8639; 
+                    }
+                    document.getElementById('qnh').value = qnhInHg.toFixed(2);
+                    
+                } else {
+                    alert("No METAR found for " + icao);
+                }
+            } catch (err) {
+                alert("Error connecting to weather server.");
+            }
+            btn.innerText = "Fetch METAR";
+        }
+
+        // 2. Perform Notebook Interpolation
+        function interpolatePOH(model, operation, pressAlt, temp) {
+            let table = poh[model][operation];
+            
+            // Clamp limits to table boundaries
+            if(pressAlt < 0) pressAlt = 0;
+            if(pressAlt > 4000) pressAlt = 4000;
+            if(temp < 0) temp = 0;
+            if(temp > 40) temp = 40;
+
+            let altLow = Math.floor(pressAlt / 1000) * 1000;
+            let altHigh = altLow + 1000;
+            if (altHigh > 4000) altHigh = 4000;
+
+            let tempLow = Math.floor(temp / 10) * 10;
+            let tempHigh = tempLow + 10;
+            if (tempHigh > 40) tempHigh = 40;
+
+            // Step A: Interpolate Temperature exactly like your notebook
+            function interpTempAtAlt(a) {
+                let vL = table[a][tempLow];
+                let vH = table[a][tempHigh];
+                if (tempLow === tempHigh) return { r: vL.r, t: vL.t };
+                
+                let ratio = (temp - tempLow) / 10.0;
+                return {
+                    r: vL.r + (vH.r - vL.r) * ratio,
+                    t: vL.t + (vH.t - vL.t) * ratio
+                };
+            }
+
+            let valAltLow = interpTempAtAlt(altLow);
+            let valAltHigh = interpTempAtAlt(altHigh);
+
+            // Step B: Interpolate Altitude exactly like your notebook
+            if (altLow === altHigh) return valAltLow;
+            let altRatio = (pressAlt - altLow) / 1000.0;
+            
+            return {
+                r: valAltLow.r + (valAltHigh.r - valAltLow.r) * altRatio,
+                t: valAltLow.t + (valAltHigh.t - valAltLow.t) * altRatio
+            };
+        }
+
+        // 3. Main Calculation Logic
+        function calculatePerformance() {
+            let oat = parseFloat(document.getElementById('oat').value);
+            let qnh = parseFloat(document.getElementById('qnh').value);
+            let wdir = parseFloat(document.getElementById('wdir').value);
+            let wspd = parseFloat(document.getElementById('wspd').value);
+            let rwy = parseFloat(document.getElementById('rwy').value);
+            let elev = parseFloat(document.getElementById('elev').value);
+            let model = document.getElementById('ac-model').value;
+
+            if (isNaN(oat) || isNaN(qnh) || isNaN(wdir) || isNaN(wspd) || isNaN(rwy) || isNaN(elev)) {
+                return alert("Please fill in all numerical fields.");
+            }
+
+            // A. Pressure Altitude Calculation
+            let pressAlt = elev + (29.92 - qnh) * 1000;
+            
+            // B. Density Altitude Calculation
+            let standardTemp = 15 - (2 * (pressAlt / 1000));
+            let densAlt = pressAlt + (120 * (oat - standardTemp));
+
+            // C. Wind Triangles (Crosswind / Headwind)
+            let angle = wdir - rwy;
+            let angleRad = angle * (Math.PI / 180);
+            let headwind = Math.round(wspd * Math.cos(angleRad));
+            let crosswind = Math.abs(Math.round(wspd * Math.sin(angleRad)));
+
+            // D. Extract base numbers via Interpolation
+            let toBase = interpolatePOH(model, "TO", pressAlt, oat);
+            let ldBase = interpolatePOH(model, "LD", pressAlt, oat);
+
+            // E. Apply Wind Corrections (From POH Notes)
+            let toWindFactor = 1.0;
+            let ldWindFactor = 1.0;
+
+            if (headwind > 0) {
+                // Decrease distances 10% for each 9 knots headwind
+                toWindFactor = 1.0 - ((headwind / 9.0) * 0.10);
+                ldWindFactor = 1.0 - ((headwind / 9.0) * 0.10);
+            } else if (headwind < 0) {
+                // Increase distances 10% for each 2 knots tailwind
+                let tailwind = Math.abs(headwind);
+                toWindFactor = 1.0 + ((tailwind / 2.0) * 0.10);
+                ldWindFactor = 1.0 + ((tailwind / 2.0) * 0.10);
+            }
+
+            // F. Final Numbers
+            let toRollFinal = Math.round(toBase.r * toWindFactor);
+            let to50Final = Math.round(toBase.t * toWindFactor);
+            
+            let ldRollFinal = Math.round(ldBase.r * ldWindFactor);
+            let ld50Final = Math.round(ldBase.t * ldWindFactor);
+
+            // Display Results
+            document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
+            document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
+            
+            // Format HW/TW Text
+            let hwText = headwind >= 0 ? headwind + " kts (Headwind)" : Math.abs(headwind) + " kts (Tailwind)";
+            let hwColor = headwind >= 0 ? "#28a745" : "#d9534f";
+            document.getElementById('res-hw').innerText = hwText;
+            document.getElementById('res-hw').style.color = hwColor;
+            document.getElementById('res-xw').innerText = crosswind + " kts";
+
+            document.getElementById('res-to-roll').innerText = toRollFinal + " ft";
+            document.getElementById('res-to-50').innerText = to50Final + " ft";
+            document.getElementById('res-ld-roll').innerText = ldRollFinal + " ft";
+            document.getElementById('res-ld-50').innerText = ld50Final + " ft";
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
