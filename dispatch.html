@@ -65,7 +65,6 @@
             display: none;
             color: #333;
             text-align: center;
-            font-family: monospace;
         }
 
         /* Results Styling */
@@ -85,7 +84,7 @@
 
     <!-- Weather Fetcher -->
     <div class="card">
-        <button class="btn btn-fetch" onclick="fetchVAAHWeather()">Fetch VAAH Weather</button>
+        <button class="btn btn-fetch" onclick="fetchMehsanaWeather()">Fetch Live Mehsana Weather</button>
         <div id="metar-display" class="metar-box"></div>
         
         <div class="grid-2">
@@ -113,7 +112,6 @@
         <div class="grid-2">
             <div class="input-group">
                 <label>Runway (2-Digit):</label>
-                <!-- Updated label to ask for 2 digits (e.g. 23) -->
                 <input type="number" id="rwy" placeholder="e.g. 23">
             </div>
             <div class="input-group">
@@ -187,35 +185,34 @@
             }
         };
 
-        // 1. Fetch exact VAAH METAR (Same data source as metar-taf.com)
-        async function fetchVAAHWeather() {
+        // 1. Fetch Live Weather via Open-Meteo
+        async function fetchMehsanaWeather() {
             let btn = document.querySelector('.btn-fetch');
             btn.innerText = "Fetching...";
             
             try {
-                // Using a public proxy to bypass CORS restrictions for GitHub Pages
-                let url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://aviationweather.gov/api/data/metar?ids=VAAH&format=json')}`;
+                let lat = 23.6333;
+                let lon = 72.3917;
+                
+                let url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,pressure_msl,wind_speed_10m,wind_direction_10m&wind_speed_unit=kn`;
+                
                 let response = await fetch(url);
                 let data = await response.json();
                 
-                if(data && data.length > 0) {
-                    let obs = data[0];
+                if(data && data.current) {
+                    let current = data.current;
                     
-                    document.getElementById('oat').value = obs.temp;
-                    document.getElementById('wdir').value = (obs.wdir === "VRB") ? 0 : obs.wdir;
-                    document.getElementById('wspd').value = obs.wspd;
+                    document.getElementById('oat').value = current.temperature_2m;
+                    document.getElementById('wdir').value = current.wind_direction_10m;
+                    document.getElementById('wspd').value = Math.round(current.wind_speed_10m);
                     
-                    // Extract exactly the QNH (hPa) from the raw METAR string
-                    let qnhInHg = 29.92;
-                    let qnhMatch = obs.rawOb.match(/Q(\d{4})/);
-                    if (qnhMatch) {
-                        let hpa = parseInt(qnhMatch[1]);
-                        qnhInHg = hpa * 0.02953;
-                    }
+                    // Round the hPa first for aviation standard
+                    let wholeHpa = Math.round(current.pressure_msl);
+                    let qnhInHg = wholeHpa * 0.02953;
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
 
                     let mBox = document.getElementById('metar-display');
-                    mBox.innerText = `✅ VAAH Data Loaded\n${obs.rawOb}`;
+                    mBox.innerText = `✅ Open-Meteo Data Loaded for Mehsana\n(Based on exactly ${wholeHpa} hPa)`;
                     mBox.style.display = "block";
                 } else {
                     alert("Could not load weather data.");
@@ -223,7 +220,7 @@
             } catch (err) {
                 alert("Error connecting to weather server.");
             }
-            btn.innerText = "Fetch VAAH Weather";
+            btn.innerText = "Fetch Live Mehsana Weather";
         }
 
         // 2. Perform Notebook Interpolation
@@ -320,6 +317,7 @@
             document.getElementById('res-pa').innerText = Math.round(pressAlt) + " ft";
             document.getElementById('res-da').innerText = Math.round(densAlt) + " ft";
             
+            // Output Winds with exact 2 decimal precision like CX-3
             let hwText = headwind >= 0 ? headwind.toFixed(2) + " KTS (Headwind)" : Math.abs(headwind).toFixed(2) + " KTS (Tailwind)";
             let hwColor = headwind >= 0 ? "#28a745" : "#d9534f";
             document.getElementById('res-hw').innerText = hwText;
