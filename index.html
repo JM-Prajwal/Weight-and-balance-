@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>W&B Calculator</title>
+    <style>
+        /* Mobile-first styling to ensure it works beautifully on all phones */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h2 { text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px; /* Prevents iOS from zooming in */
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #004494; }
+        
+        .error {
+            color: #d9534f;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        /* Table styling for the final vertical additions */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 25px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th { background-color: #f2f2f2; }
+        
+        #results-container { display: none; }
+        .cg-result {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 20px;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>Weight & Balance</h2>
+
+    <div class="input-group">
+        <label>Aircraft Registration (Last 2 letters):</label>
+        <input type="text" id="ac-id" maxlength="2" placeholder="e.g., AQ" oninput="this.value = this.value.toUpperCase()">
+    </div>
+
+    <div class="input-group">
+        <label>PIC Weight (lbs):</label>
+        <input type="number" id="pic-weight" placeholder="Must be greater than 0">
+    </div>
+
+    <div class="input-group">
+        <label>Trainee Weight (lbs):</label>
+        <input type="number" id="trainee-weight" placeholder="Can be 0">
+    </div>
+
+    <div class="input-group">
+        <label>Fuel (Liters):</label>
+        <input type="number" id="fuel-liters" placeholder="Enter usable fuel in Liters">
+    </div>
+
+    <button onclick="calculateWB()">Calculate</button>
+
+    <div id="error-msg" class="error"></div>
+
+    <div id="results-container">
+        <table>
+            <tr>
+                <th>Item</th>
+                <th>Weight (lbs)</th>
+                <th>Arm (in)</th>
+                <th>Moment</th>
+            </tr>
+            <tr>
+                <td>Basic Empty</td>
+                <td id="r-ew"></td>
+                <td id="r-ea"></td>
+                <td id="r-em"></td>
+            </tr>
+            <tr>
+                <td>Front Row</td>
+                <td id="r-fw"></td>
+                <td>37</td>
+                <td id="r-fm"></td>
+            </tr>
+            <tr>
+                <td>Fuel</td>
+                <td id="r-fuelw"></td>
+                <td>48</td>
+                <td id="r-fuelm"></td>
+            </tr>
+            <tr>
+                <th>TOTAL</th>
+                <th id="r-tw"></th>
+                <th>--</th>
+                <th id="r-tm"></th>
+            </tr>
+        </table>
+        
+        <div class="cg-result">CG: <span id="r-cg"></span> in.</div>
+    </div>
+
+    <script>
+        // --- PUT YOUR 4 AIRCRAFT DATA HERE ---
+        // I have added "AQ" based on your sheet. Replace XX, YY, and ZZ with your other 3 aircraft codes.
+        const fleetData = {
+            "AQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
+            "AO": { emptyWeight: 1672.66, emptyArm: 39.0 },
+            "RM": { emptyWeight: 1693.68, emptyArm: 39.89 },
+            "SN": { emptyWeight: 1695.88, emptyArm: 39.34 }
+        };
+
+        function calculateWB() {
+            // 1. Clear previous errors & results
+            document.getElementById('error-msg').style.display = 'none';
+            document.getElementById('results-container').style.display = 'none';
+
+            // 2. Grab inputs
+            let acId = document.getElementById('ac-id').value.trim();
+            let picWeight = parseFloat(document.getElementById('pic-weight').value);
+            let traineeWeight = parseFloat(document.getElementById('trainee-weight').value);
+            let fuelLiters = parseFloat(document.getElementById('fuel-liters').value);
+
+            // Handle empty Trainee or Fuel as 0
+            if (isNaN(traineeWeight)) traineeWeight = 0;
+            if (isNaN(fuelLiters)) fuelLiters = 0;
+
+            // 3. Validations
+            if (!fleetData[acId]) {
+                showError("Aircraft '" + acId + "' not found. Check the 2-letter code.");
+                return;
+            }
+            if (isNaN(picWeight) || picWeight <= 0) {
+                showError("Error: PIC Weight must be greater than 0.");
+                return;
+            }
+
+            // 4. Aircraft Basic Empty Calculations
+            let ac = fleetData[acId];
+            let basicMoment = ac.emptyWeight * ac.emptyArm;
+
+            // 5. Front Row Calculations (Multiplier: 37)
+            let frontWeight = picWeight + traineeWeight;
+            let frontMoment = frontWeight * 37;
+
+            // 6. Fuel Calculations
+            // As per 1000125501.jpg, Gallons = Liters / 3.8. Weight = Gallons * 6. Arm = 48.
+            let fuelGallons = fuelLiters / 3.8;
+            let fuelWeight = fuelGallons * 6;
+            let fuelMoment = fuelWeight * 48;
+
+            // 7. Vertically Add Columns
+            let totalWeight = ac.emptyWeight + frontWeight + fuelWeight;
+            let totalMoment = basicMoment + frontMoment + fuelMoment;
+
+            // 8. Calculate CG
+            let cg = totalMoment / totalWeight;
+
+            // 9. Display the math visually
+            document.getElementById('r-ew').innerText = ac.emptyWeight.toFixed(2);
+            document.getElementById('r-ea').innerText = ac.emptyArm.toFixed(2);
+            document.getElementById('r-em').innerText = basicMoment.toFixed(2);
+
+            document.getElementById('r-fw').innerText = frontWeight.toFixed(2);
+            document.getElementById('r-fm').innerText = frontMoment.toFixed(2);
+
+            document.getElementById('r-fuelw').innerText = fuelWeight.toFixed(2);
+            document.getElementById('r-fuelm').innerText = fuelMoment.toFixed(2);
+
+            document.getElementById('r-tw').innerText = totalWeight.toFixed(2);
+            document.getElementById('r-tm').innerText = totalMoment.toFixed(2);
+            
+            document.getElementById('r-cg').innerText = cg.toFixed(2);
+
+            // Show results
+            document.getElementById('results-container').style.display = 'block';
+        }
+
+        function showError(msg) {
+            let errorDiv = document.getElementById('error-msg');
+            errorDiv.innerText = msg;
+            errorDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
