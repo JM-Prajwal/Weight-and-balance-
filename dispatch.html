@@ -90,19 +90,23 @@
         <div class="grid-2">
             <div class="input-group">
                 <label>Temp (°C):</label>
-                <input type="number" id="oat" placeholder="e.g. 33" step="0.1">
+                <!-- Pre-filled to match CX-3 screenshot -->
+                <input type="number" id="oat" value="33" step="0.1">
             </div>
             <div class="input-group">
                 <label>QNH (inHg):</label>
-                <input type="number" id="qnh" placeholder="e.g. 29.75" step="0.01">
+                <!-- Pre-filled to match CX-3 screenshot -->
+                <input type="number" id="qnh" value="29.75" step="0.01">
             </div>
             <div class="input-group">
                 <label>Wind Dir (°):</label>
-                <input type="number" id="wdir" placeholder="e.g. 281">
+                <!-- Pre-filled to match CX-3 screenshot -->
+                <input type="number" id="wdir" value="281">
             </div>
             <div class="input-group">
                 <label>Wind Spd (kt):</label>
-                <input type="number" id="wspd" placeholder="e.g. 5">
+                <!-- Pre-filled to match CX-3 screenshot -->
+                <input type="number" id="wspd" value="5">
             </div>
         </div>
     </div>
@@ -111,8 +115,9 @@
     <div class="card">
         <div class="grid-2">
             <div class="input-group">
-                <label>Runway:</label>
-                <input type="number" id="rwy" placeholder="e.g. 23 or 230">
+                <label>Runway (2-Digit):</label>
+                <!-- Pre-filled to match CX-3 screenshot -->
+                <input type="number" id="rwy" value="23" placeholder="e.g. 23">
             </div>
             <div class="input-group">
                 <label>Field Elev (ft):</label>
@@ -206,7 +211,6 @@
                     document.getElementById('wdir').value = current.wind_direction_10m;
                     document.getElementById('wspd').value = Math.round(current.wind_speed_10m);
                     
-                    // Round the hPa first for aviation standard
                     let wholeHpa = Math.round(current.pressure_msl);
                     let qnhInHg = wholeHpa * 0.02953;
                     document.getElementById('qnh').value = qnhInHg.toFixed(2);
@@ -285,7 +289,7 @@
             let sigma = Math.pow(1 - 0.00000687559 * pressAlt, 5.25588) * (288.15 / oatK);
             let densAlt = 145442.16 * (1 - Math.pow(sigma, 0.234969));
 
-            // BUG FIX: Detect if they typed 23 or 230 to prevent 2300 degree math
+            // BUG FIX: Detect if you typed 23 or 230 so it calculates properly
             let rwyHeading = rwyInput;
             if (rwyInput <= 36) {
                 rwyHeading = rwyInput * 10;
@@ -339,3 +343,4 @@
     </script>
 </body>
 </html>
+
