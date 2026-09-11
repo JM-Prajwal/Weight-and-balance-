@@ -138,11 +138,11 @@
             <input type="text" id="s-ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
         </div>
         <div class="input-group">
-            <label>PIC Weight (kg):</label>
+            <label>PIC Weight (lbs):</label>
             <input type="number" id="s-pic-weight" placeholder="Must be greater than 0">
         </div>
         <div class="input-group">
-            <label>Trainee Weight (kg):</label>
+            <label>Trainee Weight (lbs):</label>
             <input type="number" id="s-trainee-weight" placeholder="Can be 0">
         </div>
         <div class="input-group">
@@ -308,11 +308,12 @@
             document.getElementById('s-results-container').style.display = 'none';
 
             let acId = document.getElementById('s-ac-id').value.trim();
-            let picKg = parseFloat(document.getElementById('s-pic-weight').value);
-            let traineeKg = parseFloat(document.getElementById('s-trainee-weight').value);
+            // Inputs are now directly in lbs
+            let picWeight = parseFloat(document.getElementById('s-pic-weight').value);
+            let traineeWeight = parseFloat(document.getElementById('s-trainee-weight').value);
             let fuelLiters = parseFloat(document.getElementById('s-fuel-liters').value);
 
-            if (isNaN(traineeKg)) traineeKg = 0;
+            if (isNaN(traineeWeight)) traineeWeight = 0;
             if (isNaN(fuelLiters)) fuelLiters = 0;
 
             if (!fleetData[acId]) {
@@ -322,23 +323,19 @@
                 err.style.display = 'block';
                 return;
             }
-            if (isNaN(picKg) || picKg <= 0) {
+            if (isNaN(picWeight) || picWeight <= 0) {
                 let err = document.getElementById('s-error-msg');
-                err.innerText = "Error: PIC Weight must be greater than 0 kg.";
+                err.innerText = "Error: PIC Weight must be greater than 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
-
-            // Convert kg to lbs
-            const kgToLbs = 2.20462;
-            let picWeight = picKg * kgToLbs;
-            let traineeWeight = traineeKg * kgToLbs;
 
             let ac = fleetData[acId];
             let basicMoment = ac.emptyWeight * ac.emptyArm;
             let picMoment = picWeight * 37;
             let traineeMoment = traineeWeight * 37;
             
+            // Strictly divide by 3.8 as requested
             let fuelGallons = fuelLiters / 3.8;
             let fuelWeight = fuelGallons * 6;
             let fuelMoment = fuelWeight * 48;
@@ -352,11 +349,11 @@
             document.getElementById('s-r-ea').innerText = ac.emptyArm.toFixed(2);
             document.getElementById('s-r-em').innerText = basicMoment.toFixed(2);
             
-            document.getElementById('s-r-pic-label').innerText = "PIC (" + picKg.toFixed(2) + " kg)";
+            document.getElementById('s-r-pic-label').innerText = "PIC (" + picWeight.toFixed(2) + " lbs)";
             document.getElementById('s-r-picw').innerText = picWeight.toFixed(2);
             document.getElementById('s-r-picm').innerText = picMoment.toFixed(2);
             
-            document.getElementById('s-r-train-label').innerText = "Trainee (" + traineeKg.toFixed(2) + " kg)";
+            document.getElementById('s-r-train-label').innerText = "Trainee (" + traineeWeight.toFixed(2) + " lbs)";
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
             
@@ -371,7 +368,7 @@
             document.getElementById('s-results-container').style.display = 'block';
         }
 
-        // --- MULTI ENGINE LOGIC ---
+        // --- MULTI ENGINE LOGIC (UNCHANGED) ---
         function calculateMultiWB() {
             document.getElementById('m-error-msg').style.display = 'none';
             document.getElementById('m-results-container').style.display = 'none';
