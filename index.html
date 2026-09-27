@@ -206,15 +206,15 @@
         </div>
 
         <div class="input-group">
-            <label>PIC Weight (kg):</label>
+            <label>PIC Weight (lbs):</label>
             <input type="number" id="m-pic-weight" placeholder="Must be greater than 0">
         </div>
         <div class="input-group">
-            <label>Trainee 1 Weight (kg):</label>
+            <label>Trainee 1 Weight (lbs):</label>
             <input type="number" id="m-t1-weight" placeholder="Must be greater than 0">
         </div>
         <div class="input-group">
-            <label>Trainee 2 Weight (kg):</label>
+            <label>Trainee 2 Weight (lbs):</label>
             <input type="number" id="m-t2-weight" placeholder="Can be 0">
         </div>
         <div class="input-group">
@@ -368,36 +368,32 @@
             document.getElementById('s-results-container').style.display = 'block';
         }
 
-        // --- MULTI ENGINE LOGIC (UNCHANGED) ---
+        // --- MULTI ENGINE LOGIC (UPDATED FOR LBS) ---
         function calculateMultiWB() {
             document.getElementById('m-error-msg').style.display = 'none';
             document.getElementById('m-results-container').style.display = 'none';
 
-            let picKg = parseFloat(document.getElementById('m-pic-weight').value);
-            let t1Kg = parseFloat(document.getElementById('m-t1-weight').value);
-            let t2Kg = parseFloat(document.getElementById('m-t2-weight').value);
+            // Inputs are now directly parsed as lbs
+            let pic = parseFloat(document.getElementById('m-pic-weight').value);
+            let t1 = parseFloat(document.getElementById('m-t1-weight').value);
+            let t2 = parseFloat(document.getElementById('m-t2-weight').value);
             let fuelLiters = parseFloat(document.getElementById('m-fuel-liters').value);
 
-            if (isNaN(t2Kg)) t2Kg = 0;
+            if (isNaN(t2)) t2 = 0;
             if (isNaN(fuelLiters)) fuelLiters = 0;
 
-            if (isNaN(picKg) || picKg <= 0) {
+            if (isNaN(pic) || pic <= 0) {
                 let err = document.getElementById('m-error-msg');
-                err.innerText = "Error: PIC Weight must be greater than 0 kg.";
+                err.innerText = "Error: PIC Weight must be greater than 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
-            if (isNaN(t1Kg) || t1Kg <= 0) {
+            if (isNaN(t1) || t1 <= 0) {
                 let err = document.getElementById('m-error-msg');
-                err.innerText = "Error: Trainee 1 Weight must be greater than 0 kg.";
+                err.innerText = "Error: Trainee 1 Weight must be greater than 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
-
-            const kgToLbs = 2.20462;
-            let pic = picKg * kgToLbs;
-            let t1 = t1Kg * kgToLbs;
-            let t2 = t2Kg * kgToLbs;
             
             let fuelGal = fuelLiters / 3.785;
             let fuel = fuelGal * 6.0;
