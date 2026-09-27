@@ -4,124 +4,244 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>W&B Calculator Pro</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
+        /* Base & Background */
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
-            background-color: #f9f9f9;
-            color: #333;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            color: #1e293b;
+            min-height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
-        h2 { text-align: center; margin-top: 0; }
+
+        /* Main App Container */
+        .app-container {
+            width: 100%;
+            max-width: 540px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        h2 { text-align: center; margin-top: 0; font-weight: 700; color: #0f172a; }
         
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Navigation & Screens */
-        .app-screen { display: none; }
+        .app-screen { display: none; animation: fadeSlideUp 0.4s ease-out forwards; }
         .app-screen.active { display: block; }
         
-        .menu-title { text-align: center; margin-bottom: 30px; font-size: 28px; color: #0056b3; }
+        .menu-title { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 32px; 
+            font-weight: 700;
+            color: #1e3a8a;
+            letter-spacing: -0.5px;
+        }
+
+        /* Menu Buttons */
         .menu-btn {
             width: 100%;
-            padding: 20px;
+            padding: 24px;
             font-size: 20px;
-            background-color: #0056b3;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .menu-btn:hover { 
+            transform: translateY(-3px);
+            box-shadow: 0 15px 25px rgba(37, 99, 235, 0.3);
+        }
+        .menu-btn span {
+            display: block;
+            font-size: 14px;
+            font-weight: 400;
+            color: #bfdbfe;
+            margin-top: 6px;
+        }
+
+        /* Top Navigation Bar */
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .nav-bar h2 { 
+            flex-grow: 1; 
+            margin: 0; 
+            font-size: 22px; 
+            text-align: center;
+            padding-right: 60px; /* offset for back button balance */
+        }
+        .back-btn {
+            padding: 10px 16px;
+            background-color: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .back-btn:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* Form Inputs */
+        .input-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            font-weight: 600; 
+            margin-bottom: 8px; 
+            font-size: 14px;
+            color: #475569;
+        }
+        input {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px; 
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            box-sizing: border-box;
+            color: #0f172a;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #ffffff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+        }
+        input::placeholder { color: #94a3b8; }
+
+        /* Calculate Button */
+        .calc-btn {
+            width: 100%;
+            padding: 18px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: none;
             border-radius: 12px;
             cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .menu-btn:hover { background-color: #004494; }
-
-        .nav-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ddd;
-        }
-        .nav-bar h2 { margin: 0; font-size: 20px; }
-        .back-btn {
-            padding: 8px 15px;
-            background-color: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* General Inputs & Tables */
-        .input-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; }
-        input {
-            width: 100%;
-            padding: 12px;
-            font-size: 16px; 
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-        .calc-btn {
-            width: 100%;
-            padding: 15px;
-            font-size: 18px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+            font-weight: 700;
             margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
         }
-        .calc-btn:hover { background-color: #218838; }
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(16, 185, 129, 0.3);
+        }
         
+        /* Error Message */
         .error {
-            color: #d9534f;
-            font-weight: bold;
+            color: #b91c1c;
+            font-weight: 600;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
             display: none;
-            padding: 10px;
-            border: 1px solid #d9534f;
-            border-radius: 8px;
-            background-color: #fdf5f5;
+            padding: 14px;
+            border-radius: 10px;
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            animation: fadeSlideUp 0.3s ease;
         }
 
+        /* Results Area */
+        .results-container { 
+            display: none; 
+            margin-top: 30px;
+            animation: fadeSlideUp 0.5s ease;
+        }
+        
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 25px;
-            background: white;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 10px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
             font-size: 14px;
         }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background-color: #f2f2f2; }
-        .subtotal { background-color: #e9ecef; font-weight: bold; }
+        th, td { 
+            padding: 14px 12px; 
+            text-align: center; 
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { 
+            background-color: #f8fafc; 
+            font-weight: 600; 
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        td { font-weight: 500; color: #1e293b; }
+        tr:last-child td, tr:last-child th { border-bottom: none; }
         
-        .results-container { display: none; }
+        .subtotal { background-color: #f1f5f9; font-weight: 700; }
+        .subtotal td { color: #0f172a; }
+        
         .cg-result {
             text-align: center;
-            font-size: 22px;
-            font-weight: bold;
-            margin-top: 20px;
-            color: #28a745;
+            font-size: 24px;
+            font-weight: 800;
+            margin-top: 25px;
+            color: #047857;
+            background: #ecfdf5;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #a7f3d0;
         }
+        .cg-result span { color: #065f46; }
+
     </style>
 </head>
 <body>
 
+<div class="app-container">
     <!-- ========================================== -->
     <!-- MAIN MENU SCREEN -->
     <!-- ========================================== -->
     <div id="screen-menu" class="app-screen active">
         <h1 class="menu-title">W&B Calculator</h1>
-        <button class="menu-btn" onclick="switchScreen('screen-single')">Single Engine<br><span style="font-size: 14px; font-weight: normal;">(Cessna Fleet)</span></button>
-        <button class="menu-btn" onclick="switchScreen('screen-multi')">Multi Engine<br><span style="font-size: 14px; font-weight: normal;">(Piper Seneca VT-AET)</span></button>
+        <button class="menu-btn" onclick="switchScreen('screen-single')">Single Engine <span>Cessna Fleet</span></button>
+        <button class="menu-btn" onclick="switchScreen('screen-multi')">Multi Engine <span>Piper Seneca VT-AET</span></button>
     </div>
 
     <!-- ========================================== -->
@@ -150,7 +270,7 @@
             <input type="number" id="s-fuel-liters" placeholder="Enter usable fuel in Liters">
         </div>
 
-        <button class="calc-btn" onclick="calculateSingleWB()">Calculate Single</button>
+        <button class="calc-btn" onclick="calculateSingleWB()">Calculate W&B</button>
         <div id="s-error-msg" class="error"></div>
 
         <div id="s-results-container" class="results-container">
@@ -185,11 +305,11 @@
                     <td>48</td>
                     <td id="s-r-fuelm"></td>
                 </tr>
-                <tr>
-                    <th>TOTAL</th>
-                    <th id="s-r-tw"></th>
-                    <th>--</th>
-                    <th id="s-r-tm"></th>
+                <tr class="subtotal">
+                    <td>TOTAL</td>
+                    <td id="s-r-tw"></td>
+                    <td>--</td>
+                    <td id="s-r-tm"></td>
                 </tr>
             </table>
             <div class="cg-result">CG: <span id="s-r-cg"></span> in.</div>
@@ -222,7 +342,7 @@
             <input type="number" id="m-fuel-liters" placeholder="Enter fuel in Liters">
         </div>
 
-        <button class="calc-btn" onclick="calculateMultiWB()">Calculate Multi</button>
+        <button class="calc-btn" onclick="calculateMultiWB()">Calculate W&B</button>
         <div id="m-error-msg" class="error"></div>
 
         <div id="m-results-container" class="results-container">
@@ -279,12 +399,12 @@
             <div class="cg-result">Takeoff CG: <span id="m-r-cg"></span> in.</div>
         </div>
     </div>
+</div>
 
     <!-- ========================================== -->
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT LOGIC (UNCHANGED) -->
     <!-- ========================================== -->
     <script>
-        // Screen Navigation
         function switchScreen(screenId) {
             document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -295,7 +415,6 @@
             document.getElementById('m-error-msg').style.display = 'none';
         }
 
-        // --- SINGLE ENGINE LOGIC ---
         const fleetData = {
             "AAQ": { emptyWeight: 1668.59, emptyArm: 39.09 }, 
             "AAO": { emptyWeight: 1672.66, emptyArm: 39.0 },
@@ -308,7 +427,6 @@
             document.getElementById('s-results-container').style.display = 'none';
 
             let acId = document.getElementById('s-ac-id').value.trim();
-            // Inputs are now directly in lbs
             let picWeight = parseFloat(document.getElementById('s-pic-weight').value);
             let traineeWeight = parseFloat(document.getElementById('s-trainee-weight').value);
             let fuelLiters = parseFloat(document.getElementById('s-fuel-liters').value);
@@ -335,7 +453,6 @@
             let picMoment = picWeight * 37;
             let traineeMoment = traineeWeight * 37;
             
-            // Strictly divide by 3.8 as requested
             let fuelGallons = fuelLiters / 3.8;
             let fuelWeight = fuelGallons * 6;
             let fuelMoment = fuelWeight * 48;
@@ -344,7 +461,6 @@
             let totalMoment = basicMoment + picMoment + traineeMoment + fuelMoment;
             let cg = totalMoment / totalWeight;
 
-            // Display math visually
             document.getElementById('s-r-ew').innerText = ac.emptyWeight.toFixed(2);
             document.getElementById('s-r-ea').innerText = ac.emptyArm.toFixed(2);
             document.getElementById('s-r-em').innerText = basicMoment.toFixed(2);
@@ -357,7 +473,7 @@
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
             
-            document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " US GAL)";
+            document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " GAL)";
             document.getElementById('s-r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('s-r-fuelm').innerText = fuelMoment.toFixed(2);
 
@@ -368,12 +484,10 @@
             document.getElementById('s-results-container').style.display = 'block';
         }
 
-        // --- MULTI ENGINE LOGIC (UPDATED FOR LBS) ---
         function calculateMultiWB() {
             document.getElementById('m-error-msg').style.display = 'none';
             document.getElementById('m-results-container').style.display = 'none';
 
-            // Inputs are now directly parsed as lbs
             let pic = parseFloat(document.getElementById('m-pic-weight').value);
             let t1 = parseFloat(document.getElementById('m-t1-weight').value);
             let t2 = parseFloat(document.getElementById('m-t2-weight').value);
@@ -431,3 +545,4 @@
     </script>
 </body>
 </html>
+   
