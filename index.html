@@ -14,7 +14,7 @@
         :root {
             --sky-bg: #e0f2fe;
             --card-bg: #ffffff;
-            --primary: #0369a1; /* Deep aviation blue */
+            --primary: #0369a1; 
             --primary-hover: #0284c7;
             --text-main: #0f172a;
             --text-muted: #64748b;
@@ -27,7 +27,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0;
             padding: 20px;
-            background: linear-gradient(180deg, #f0f9ff 0%, #bae6fd 100%);
+            background: linear-gradient(180deg, #dbeafe 0%, #bae6fd 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -37,26 +37,57 @@
             position: relative;
         }
 
-        /* ✈️ Background Flying Animations */
+        /* ☁️ Drifting Clouds */
+        .clouds-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200%;
+            height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/clouds.png') repeat;
+            opacity: 0.6;
+            z-index: 0;
+            pointer-events: none;
+            animation: driftClouds 90s linear infinite;
+        }
+        @keyframes driftClouds {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ✈️ Background Planes */
         .bg-plane {
             position: fixed;
-            font-size: 80px;
-            color: #7dd3fc;
-            opacity: 0.4;
             pointer-events: none;
-            z-index: 0;
-            user-select: none;
+            z-index: 1;
+            filter: drop-shadow(0px 30px 15px rgba(12, 74, 110, 0.25)); 
+            transition: opacity 0.5s ease-in-out;
         }
-        .plane-1 { animation: flyRight 30s linear infinite; top: 15%; left: -20%; }
-        .plane-2 { animation: flyLeft 40s linear infinite; bottom: 20%; right: -20%; font-size: 120px; opacity: 0.2; }
+        
+        .plane-1 { 
+            width: 220px; 
+            opacity: 0.6; 
+            animation: flyRight 35s linear infinite; 
+            top: 15%; 
+            left: -30%; 
+        }
+        
+        .plane-2 { 
+            width: 450px; 
+            opacity: 0.25; 
+            filter: drop-shadow(0px 50px 20px rgba(0,0,0,0.15)) blur(3px);
+            animation: flyLeft 45s linear infinite; 
+            bottom: 5%; 
+            right: -40%; 
+        }
         
         @keyframes flyRight {
-            0% { transform: translateX(0vw) rotate(15deg); }
-            100% { transform: translateX(120vw) rotate(15deg); }
+            0% { transform: translateX(0vw) rotate(-2deg); }
+            100% { transform: translateX(130vw) rotate(-2deg); }
         }
         @keyframes flyLeft {
-            0% { transform: translateX(0vw) rotate(-165deg); }
-            100% { transform: translateX(-120vw) rotate(-165deg); }
+            0% { transform: translateX(0vw) rotate(178deg); }
+            100% { transform: translateX(-130vw) rotate(178deg); }
         }
 
         /* Main Container */
@@ -65,10 +96,12 @@
             max-width: 550px;
             background: var(--card-bg);
             border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(12, 74, 110, 0.15);
+            box-shadow: 0 20px 50px rgba(12, 74, 110, 0.2);
             padding: 30px 25px;
             position: relative;
-            z-index: 10;
+            z-index: 10; 
+            backdrop-filter: blur(10px);
+            box-sizing: border-box; 
         }
 
         h2 { margin: 0; font-weight: 800; color: var(--primary); }
@@ -81,10 +114,9 @@
             color: var(--primary);
         }
 
-        /* Screens */
         .app-screen { display: none; animation: slideIn 0.4s ease-out forwards; }
         .app-screen.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Buttons */
         .menu-btn {
@@ -99,13 +131,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
         }
         .menu-btn:hover { 
             border-color: var(--primary);
             background: #f0f9ff;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(3, 105, 161, 0.1);
+            transform: scale(1.02);
+            box-shadow: 0 10px 20px rgba(3, 105, 161, 0.12);
         }
         .menu-btn-title { font-size: 20px; font-weight: 800; }
         .menu-btn-sub { font-size: 14px; color: var(--text-muted); margin-top: 5px; }
@@ -160,7 +193,6 @@
         input:focus { outline: none; border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.1); }
         input::placeholder { color: #94a3b8; font-weight: 400; }
 
-        /* Action Button */
         .calc-btn {
             width: 100%;
             padding: 18px;
@@ -173,7 +205,8 @@
             border-radius: 12px;
             cursor: pointer;
             margin-top: 5px;
-            transition: all 0.2s;
+            transition: all 0.3s;
+            box-sizing: border-box;
         }
         .calc-btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(3, 105, 161, 0.2); }
 
@@ -189,48 +222,56 @@
             border-radius: 10px;
         }
 
-        /* ✈️ Loader Animation */
+        /* Loader */
         .loader-container {
             display: none;
             text-align: center;
-            padding: 40px 20px;
+            padding: 50px 20px;
             margin-top: 20px;
             border-radius: 12px;
             background: #f0f9ff;
+            position: relative;
+            overflow: hidden;
         }
         .loader-text {
             font-weight: 800;
             color: var(--primary);
             font-size: 18px;
-            margin-top: 10px;
+            margin-top: 15px;
+            position: relative;
+            z-index: 2;
         }
-        .animated-plane {
-            font-size: 40px;
+        .animated-plane-img {
+            width: 130px; 
             display: inline-block;
-            animation: zoomFly 1.5s ease-in-out infinite alternate;
+            filter: drop-shadow(0 20px 10px rgba(12, 74, 110, 0.25));
+            animation: takeoff 1.5s ease-in-out infinite;
         }
-        @keyframes zoomFly {
-            0% { transform: translateY(10px) scale(0.9); }
-            100% { transform: translateY(-10px) scale(1.1); }
+        @keyframes takeoff {
+            0% { transform: translate(-30px, 20px) rotate(0deg) scale(0.9); opacity: 0; }
+            30% { transform: translate(0px, 0px) rotate(-10deg) scale(1); opacity: 1; }
+            70% { transform: translate(0px, 0px) rotate(-10deg) scale(1); opacity: 1; }
+            100% { transform: translate(40px, -30px) rotate(-25deg) scale(1.1); opacity: 0; }
         }
 
-        /* Tables & Results */
+        /* 📱 Fixed Mobile Results Table */
         .results-container { display: none; margin-top: 25px; }
         
         .table-wrapper {
             width: 100%;
-            overflow-x: auto;
             border: 1px solid var(--border-color);
             border-radius: 12px;
             background: #ffffff;
+            box-sizing: border-box;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 350px;
+            table-layout: auto; 
         }
+        
         th, td { 
             padding: 14px 10px; 
             text-align: right; 
@@ -245,16 +286,14 @@
             font-weight: 800;
             text-transform: uppercase;
             font-size: 12px;
-            white-space: nowrap;
+            white-space: nowrap; 
         }
         
         td:not(:first-child) { font-family: 'Roboto Mono', monospace; font-weight: 500; }
-        
         tr:last-child td { border-bottom: none; }
         .subtotal { background-color: #f0f9ff; }
         .subtotal td { color: var(--primary); font-weight: 800; }
         
-        /* Final CG Display */
         .cg-result {
             text-align: center;
             margin-top: 20px;
@@ -262,34 +301,35 @@
             padding: 20px;
             border-radius: 12px;
             border: 2px solid #86efac;
+            box-sizing: border-box;
         }
-        .cg-result-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 800;
-            color: #166534;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-        .cg-result-value {
-            font-family: 'Roboto Mono', monospace;
-            font-size: 32px;
-            font-weight: 800;
-            color: #15803d;
-        }
+        .cg-result-label { display: block; font-size: 13px; font-weight: 800; color: #166534; text-transform: uppercase; margin-bottom: 5px; }
+        .cg-result-value { font-family: 'Roboto Mono', monospace; font-size: 32px; font-weight: 800; color: #15803d; }
 
-        @media (max-width: 400px) {
+        /* 📱 Mobile CSS Media Query */
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .app-container { padding: 25px 15px; }
             .input-grid { grid-template-columns: 1fr; }
             .input-group.full-width { grid-column: span 1; }
-            .cg-result-value { font-size: 28px; }
+            table { font-size: 11px; } 
+            th { font-size: 9px; padding: 12px 4px; letter-spacing: -0.5px; } 
+            td { padding: 12px 4px; } 
+            th:first-child, td:first-child { padding-left: 8px; }
+            th:last-child, td:last-child { padding-right: 8px; }
+            .cg-result-value { font-size: 26px; }
+            .nav-bar h2 { font-size: 18px; padding-right: 0; margin-left: 10px; } 
         }
     </style>
 </head>
 <body>
 
-<!-- Background Flying Planes -->
-<div class="bg-plane plane-1">✈️</div>
-<div class="bg-plane plane-2">✈️</div>
+<!-- Clouds Background Layer -->
+<div class="clouds-bg"></div>
+
+<!-- Background Planes (IDs added for JS dynamic switching) -->
+<img src="1790494188872.jpg" id="bg-plane-1" class="bg-plane plane-1" alt="plane 1">
+<img src="piper.png" id="bg-plane-2" class="bg-plane plane-2" alt="plane 2">
 
 <div class="app-container">
     <!-- MAIN MENU -->
@@ -336,10 +376,10 @@
         <button class="calc-btn" onclick="startCalculation('single')">Compute W&B</button>
         <div id="s-error-msg" class="error"></div>
         
-        <!-- Loading Simulation -->
+        <!-- Single Engine Loader -->
         <div id="s-loader" class="loader-container">
-            <div class="animated-plane">✈️</div>
-            <div class="loader-text">Analyzing Data...</div>
+            <img src="1790494188872.jpg" class="animated-plane-img" alt="Cessna">
+            <div class="loader-text">Computing Dynamics...</div>
         </div>
 
         <div id="s-results-container" class="results-container">
@@ -419,10 +459,10 @@
         <button class="calc-btn" onclick="startCalculation('multi')">Compute W&B</button>
         <div id="m-error-msg" class="error"></div>
 
-        <!-- Loading Simulation -->
+        <!-- Multi Engine Loader -->
         <div id="m-loader" class="loader-container">
-            <div class="animated-plane">✈️</div>
-            <div class="loader-text">Analyzing Data...</div>
+            <img src="piper.png" class="animated-plane-img" alt="Piper">
+            <div class="loader-text">Computing Dynamics...</div>
         </div>
 
         <div id="m-results-container" class="results-container">
@@ -491,13 +531,30 @@
             document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
-            // Reset all states
             document.getElementById('s-results-container').style.display = 'none';
             document.getElementById('m-results-container').style.display = 'none';
             document.getElementById('s-loader').style.display = 'none';
             document.getElementById('m-loader').style.display = 'none';
             document.getElementById('s-error-msg').style.display = 'none';
             document.getElementById('m-error-msg').style.display = 'none';
+
+            // DYNAMIC IMAGE SWITCHING
+            let bg1 = document.getElementById('bg-plane-1');
+            let bg2 = document.getElementById('bg-plane-2');
+
+            if (screenId === 'screen-single') {
+                // Show Cessna everywhere
+                bg1.src = '1790494188872.jpg';
+                bg2.src = '1790494188872.jpg';
+            } else if (screenId === 'screen-multi') {
+                // Show Piper everywhere
+                bg1.src = 'piper.png';
+                bg2.src = 'piper.png';
+            } else {
+                // Main Menu: Show one of each
+                bg1.src = '1790494188872.jpg';
+                bg2.src = 'piper.png';
+            }
         }
 
         const fleetData = {
@@ -507,7 +564,6 @@
             "JSN": { emptyWeight: 1695.88, emptyArm: 39.34 }
         };
 
-        // Handles the animated loading delay
         function startCalculation(type) {
             let errorBox = document.getElementById(type === 'single' ? 's-error-msg' : 'm-error-msg');
             let resultsBox = document.getElementById(type === 'single' ? 's-results-container' : 'm-results-container');
@@ -516,7 +572,6 @@
             errorBox.style.display = 'none';
             resultsBox.style.display = 'none';
 
-            // Validate FIRST before showing loader
             if(type === 'single') {
                 let acId = document.getElementById('s-ac-id').value.trim();
                 let picWeight = parseFloat(document.getElementById('s-pic-weight').value);
@@ -545,14 +600,13 @@
                 }
             }
 
-            // If valid, show loader for 1.2 seconds to simulate calculation
             loader.style.display = 'block';
             
             setTimeout(() => {
                 loader.style.display = 'none';
                 if(type === 'single') calculateSingleWB();
                 else calculateMultiWB();
-            }, 1200);
+            }, 1400);
         }
 
         function calculateSingleWB() {
