@@ -263,7 +263,7 @@
             border-radius: 12px;
             background: #ffffff;
             box-sizing: border-box;
-            overflow: hidden; /* Hard stop on anything spilling out */
+            overflow: hidden; 
         }
 
         table {
@@ -334,9 +334,9 @@
 <!-- Clouds Background Layer -->
 <div class="clouds-bg"></div>
 
-<!-- Background Planes -->
-<img src="cessna.png" id="bg-plane-1" class="bg-plane plane-1" alt="plane 1">
-<img src="piper.png" id="bg-plane-2" class="bg-plane plane-2" alt="plane 2">
+<!-- Background Planes with exact capitalized filenames -->
+<img src="Cessna.png" id="bg-plane-1" class="bg-plane plane-1" alt="plane 1">
+<img src="Piper.png" id="bg-plane-2" class="bg-plane plane-2" alt="plane 2">
 
 <div class="app-container">
     <!-- MAIN MENU -->
@@ -385,7 +385,7 @@
         
         <!-- Single Engine Loader -->
         <div id="s-loader" class="loader-container">
-            <img src="cessna.png" class="animated-plane-img" alt="Cessna">
+            <img src="Cessna.png" class="animated-plane-img" alt="Cessna">
             <div class="loader-text">Computing Dynamics...</div>
         </div>
 
@@ -468,7 +468,7 @@
 
         <!-- Multi Engine Loader -->
         <div id="m-loader" class="loader-container">
-            <img src="piper.png" class="animated-plane-img" alt="Piper">
+            <img src="Piper.png" class="animated-plane-img" alt="Piper">
             <div class="loader-text">Computing Dynamics...</div>
         </div>
 
@@ -533,7 +533,7 @@
     </div>
 </div>
 
-    <script>
+     <script>
         function switchScreen(screenId) {
             document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -545,22 +545,22 @@
             document.getElementById('s-error-msg').style.display = 'none';
             document.getElementById('m-error-msg').style.display = 'none';
 
-            // DYNAMIC IMAGE SWITCHING
+            // DYNAMIC IMAGE SWITCHING WITH CAPITALIZED FILENAMES
             let bg1 = document.getElementById('bg-plane-1');
             let bg2 = document.getElementById('bg-plane-2');
 
             if (screenId === 'screen-single') {
                 // Show Cessna everywhere
-                bg1.src = 'cessna.png';
-                bg2.src = 'cessna.png';
+                bg1.src = 'Cessna.png';
+                bg2.src = 'Cessna.png';
             } else if (screenId === 'screen-multi') {
                 // Show Piper everywhere
-                bg1.src = 'piper.png';
-                bg2.src = 'piper.png';
+                bg1.src = 'Piper.png';
+                bg2.src = 'Piper.png';
             } else {
                 // Main Menu: Show one of each
-                bg1.src = 'cessna.png';
-                bg2.src = 'piper.png';
+                bg1.src = 'Cessna.png';
+                bg2.src = 'Piper.png';
             }
         }
 
@@ -650,7 +650,6 @@
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
             
-            // Fixed the label output here
             document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(1) + " GAL)";
             document.getElementById('s-r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('s-r-fuelm').innerText = fuelMoment.toFixed(2);
@@ -707,3 +706,4 @@
     </script>
 </body>
 </html>
+        
