@@ -3,267 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>W&B EFB Calculator</title>
+    <title>W&B Pro Calculator</title>
     
-    <!-- Aviation-style Fonts -->
+    <!-- Clean, highly readable fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     
     <style>
-        /* Base & Cockpit Theme */
         :root {
-            --bg-dark: #090c10;
-            --panel-bg: #161b22;
-            --panel-border: #30363d;
-            --text-main: #c9d1d9;
-            --text-muted: #8b949e;
-            --accent-blue: #58a6ff;
-            --accent-green: #3fb950;
-            --warning-red: #f85149;
-            --input-bg: #0d1117;
+            --sky-bg: #e0f2fe;
+            --card-bg: #ffffff;
+            --primary: #0369a1; /* Deep aviation blue */
+            --primary-hover: #0284c7;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --success: #10b981;
+            --error: #ef4444;
         }
 
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             margin: 0;
-            padding: 15px;
-            background-color: var(--bg-dark);
-            /* Subtle aviation navigation grid background */
-            background-image: 
-                linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
+            padding: 20px;
+            background: linear-gradient(180deg, #f0f9ff 0%, #bae6fd 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-        }
-
-        /* EFB Panel Container */
-        .app-container {
-            width: 100%;
-            max-width: 600px;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            padding: 25px 20px;
+            overflow-x: hidden;
             position: relative;
         }
 
-        /* Typography */
-        h1, h2 {
-            font-family: 'Chakra Petch', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 0;
+        /* ✈️ Background Flying Animations */
+        .bg-plane {
+            position: fixed;
+            font-size: 80px;
+            color: #7dd3fc;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
         }
+        .plane-1 { animation: flyRight 30s linear infinite; top: 15%; left: -20%; }
+        .plane-2 { animation: flyLeft 40s linear infinite; bottom: 20%; right: -20%; font-size: 120px; opacity: 0.2; }
+        
+        @keyframes flyRight {
+            0% { transform: translateX(0vw) rotate(15deg); }
+            100% { transform: translateX(120vw) rotate(15deg); }
+        }
+        @keyframes flyLeft {
+            0% { transform: translateX(0vw) rotate(-165deg); }
+            100% { transform: translateX(-120vw) rotate(-165deg); }
+        }
+
+        /* Main Container */
+        .app-container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(12, 74, 110, 0.15);
+            padding: 30px 25px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h2 { margin: 0; font-weight: 800; color: var(--primary); }
         
         .menu-title { 
             text-align: center; 
             margin-bottom: 30px; 
-            font-size: 28px; 
-            color: var(--accent-blue);
-            text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+            font-size: 32px; 
+            font-weight: 800;
+            color: var(--primary);
         }
 
         /* Screens */
-        .app-screen { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .app-screen { display: none; animation: slideIn 0.4s ease-out forwards; }
         .app-screen.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Dashboard Buttons */
+        /* Buttons */
         .menu-btn {
             width: 100%;
-            padding: 20px;
-            background: var(--input-bg);
-            border: 1px solid var(--panel-border);
-            color: var(--text-main);
-            border-radius: 12px;
+            padding: 22px;
+            background: #f8fafc;
+            border: 2px solid var(--border-color);
+            color: var(--primary);
+            border-radius: 16px;
             cursor: pointer;
             margin-bottom: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             transition: all 0.2s;
         }
-        .menu-btn:hover, .menu-btn:active { 
-            border-color: var(--accent-blue);
-            background: #111b27;
-            box-shadow: inset 0 0 15px rgba(88, 166, 255, 0.1);
+        .menu-btn:hover { 
+            border-color: var(--primary);
+            background: #f0f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(3, 105, 161, 0.1);
         }
-        .menu-btn-title { font-family: 'Chakra Petch', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent-blue); }
-        .menu-btn-sub { font-size: 13px; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .menu-btn-title { font-size: 20px; font-weight: 800; }
+        .menu-btn-sub { font-size: 14px; color: var(--text-muted); margin-top: 5px; }
 
-        /* Top Nav */
+        /* Nav Bar */
         .nav-bar {
             display: flex;
             align-items: center;
             margin-bottom: 25px;
-            border-bottom: 1px solid var(--panel-border);
+            border-bottom: 2px solid #f1f5f9;
             padding-bottom: 15px;
         }
-        .nav-bar h2 { flex-grow: 1; text-align: center; font-size: 20px; color: #fff; padding-right: 70px; }
+        .nav-bar h2 { flex-grow: 1; text-align: center; padding-right: 60px; font-size: 22px; }
         .back-btn {
-            padding: 8px 12px;
-            background: transparent;
-            border: 1px solid var(--panel-border);
-            color: var(--text-muted);
-            border-radius: 8px;
+            padding: 10px 15px;
+            background: #f1f5f9;
+            border: none;
+            color: var(--text-main);
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 14px;
             cursor: pointer;
+            transition: background 0.2s;
         }
-        .back-btn:hover { color: #fff; border-color: var(--text-muted); }
+        .back-btn:hover { background: #e2e8f0; }
 
-        /* Forms & Inputs */
-        .input-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
+        /* Inputs */
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .input-group.full-width { grid-column: span 2; }
         
         label { 
             display: block; 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
+            font-size: 13px; 
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary);
+            margin-bottom: 8px;
         }
         
         input {
             width: 100%;
-            padding: 14px;
-            font-family: 'JetBrains Mono', monospace; /* Monospace for precise numbers */
-            font-size: 16px; 
-            background-color: var(--input-bg);
-            border: 1px solid var(--panel-border);
-            color: #fff;
-            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            background-color: #f8fafc;
+            border: 2px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 12px;
             box-sizing: border-box;
-            transition: border 0.2s;
+            transition: all 0.2s;
         }
-        input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 8px rgba(88, 166, 255, 0.3); }
-        input::placeholder { color: #484f58; font-family: 'Roboto', sans-serif; font-size: 14px; }
+        input:focus { outline: none; border-color: var(--primary); background: #ffffff; box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.1); }
+        input::placeholder { color: #94a3b8; font-weight: 400; }
 
-        /* Calculate Action */
+        /* Action Button */
         .calc-btn {
             width: 100%;
-            padding: 16px;
-            font-family: 'Chakra Petch', sans-serif;
+            padding: 18px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 18px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: var(--accent-green);
-            color: #000;
+            font-weight: 800;
+            background: var(--primary);
+            color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 700;
             margin-top: 5px;
+            transition: all 0.2s;
         }
-        .calc-btn:hover { background: #46cf5a; box-shadow: 0 0 15px rgba(63, 185, 80, 0.4); }
+        .calc-btn:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(3, 105, 161, 0.2); }
 
         .error {
-            color: var(--warning-red);
-            font-size: 14px;
+            color: var(--error);
+            font-weight: 600;
             text-align: center;
             margin-top: 15px;
             display: none;
-            padding: 10px;
-            background: rgba(248, 81, 73, 0.1);
-            border: 1px solid rgba(248, 81, 73, 0.4);
-            border-radius: 8px;
+            padding: 12px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
         }
 
-        /* Data Tables - Fixed for Mobile */
+        /* ✈️ Loader Animation */
+        .loader-container {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 20px;
+            border-radius: 12px;
+            background: #f0f9ff;
+        }
+        .loader-text {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .animated-plane {
+            font-size: 40px;
+            display: inline-block;
+            animation: zoomFly 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes zoomFly {
+            0% { transform: translateY(10px) scale(0.9); }
+            100% { transform: translateY(-10px) scale(1.1); }
+        }
+
+        /* Tables & Results */
         .results-container { display: none; margin-top: 25px; }
         
-        /* Table Wrapper prevents screen breaking on tiny phones */
         .table-wrapper {
             width: 100%;
             overflow-x: auto;
-            border: 1px solid var(--panel-border);
-            border-radius: 8px;
-            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: #ffffff;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
-            font-family: 'JetBrains Mono', monospace; /* Digital readout look */
-            min-width: 320px; /* Ensures columns don't crush too much */
+            font-size: 14px;
+            min-width: 350px;
         }
         th, td { 
-            padding: 12px 8px; 
-            text-align: right; /* Standard for financial/aviation data */
-            border-bottom: 1px solid var(--panel-border);
+            padding: 14px 10px; 
+            text-align: right; 
+            border-bottom: 1px solid #f1f5f9;
         }
         th:first-child, td:first-child { text-align: left; padding-left: 15px; }
         th:last-child, td:last-child { padding-right: 15px; }
         
         th { 
-            background-color: #1c2128; 
+            background-color: #f8fafc; 
             color: var(--text-muted);
-            font-family: 'Roboto', sans-serif;
+            font-weight: 800;
             text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            white-space: nowrap; /* Fixes awkward two-line headers */
+            font-size: 12px;
+            white-space: nowrap;
         }
         
-        tr:last-child td { border-bottom: none; }
-        .subtotal { background-color: rgba(88, 166, 255, 0.05); }
-        .subtotal td { color: var(--accent-blue); font-weight: 700; }
+        td:not(:first-child) { font-family: 'Roboto Mono', monospace; font-weight: 500; }
         
-        /* Final Output Display */
+        tr:last-child td { border-bottom: none; }
+        .subtotal { background-color: #f0f9ff; }
+        .subtotal td { color: var(--primary); font-weight: 800; }
+        
+        /* Final CG Display */
         .cg-result {
             text-align: center;
             margin-top: 20px;
-            background: #000;
+            background: #f0fdf4;
             padding: 20px;
-            border-radius: 8px;
-            border: 2px solid #2ea043;
-            box-shadow: inset 0 0 20px rgba(46, 160, 67, 0.2);
+            border-radius: 12px;
+            border: 2px solid #86efac;
         }
         .cg-result-label {
             display: block;
-            font-size: 12px;
-            color: var(--accent-green);
+            font-size: 13px;
+            font-weight: 800;
+            color: #166534;
             text-transform: uppercase;
-            letter-spacing: 2px;
             margin-bottom: 5px;
         }
         .cg-result-value {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Roboto Mono', monospace;
             font-size: 32px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            font-weight: 800;
+            color: #15803d;
         }
 
-        /* Mobile specific adjustments */
         @media (max-width: 400px) {
             .input-grid { grid-template-columns: 1fr; }
             .input-group.full-width { grid-column: span 1; }
-            th, td { font-size: 12px; padding: 10px 5px; }
-            .cg-result-value { font-size: 26px; }
+            .cg-result-value { font-size: 28px; }
         }
     </style>
 </head>
 <body>
 
+<!-- Background Flying Planes -->
+<div class="bg-plane plane-1">✈️</div>
+<div class="bg-plane plane-2">✈️</div>
+
 <div class="app-container">
-    <!-- ========================================== -->
-    <!-- MAIN MENU SCREEN -->
-    <!-- ========================================== -->
+    <!-- MAIN MENU -->
     <div id="screen-menu" class="app-screen active">
         <h1 class="menu-title">W&B System</h1>
         
@@ -278,36 +307,40 @@
         </button>
     </div>
 
-    <!-- ========================================== -->
-    <!-- SINGLE ENGINE SCREEN -->
-    <!-- ========================================== -->
+    <!-- SINGLE ENGINE -->
     <div id="screen-single" class="app-screen">
         <div class="nav-bar">
-            <button class="back-btn" onclick="switchScreen('screen-menu')">← MENU</button>
-            <h2>SINGLE ENG</h2>
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
+            <h2>Single Engine</h2>
         </div>
 
         <div class="input-grid">
             <div class="input-group full-width">
-                <label>ACFT REGISTRATION (LAST 3)</label>
+                <label>Aircraft Registration (Last 3)</label>
                 <input type="text" id="s-ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
             </div>
             <div class="input-group">
-                <label>PIC (LBS)</label>
+                <label>PIC (lbs)</label>
                 <input type="number" id="s-pic-weight" placeholder="> 0">
             </div>
             <div class="input-group">
-                <label>TRAINEE (LBS)</label>
+                <label>Trainee (lbs)</label>
                 <input type="number" id="s-trainee-weight" placeholder="≥ 0">
             </div>
             <div class="input-group full-width">
-                <label>USABLE FUEL (LITERS)</label>
+                <label>Usable Fuel (Liters)</label>
                 <input type="number" id="s-fuel-liters" placeholder="Liters">
             </div>
         </div>
 
-        <button class="calc-btn" onclick="calculateSingleWB()">COMPUTE W&B</button>
+        <button class="calc-btn" onclick="startCalculation('single')">Compute W&B</button>
         <div id="s-error-msg" class="error"></div>
+        
+        <!-- Loading Simulation -->
+        <div id="s-loader" class="loader-container">
+            <div class="animated-plane">✈️</div>
+            <div class="loader-text">Analyzing Data...</div>
+        </div>
 
         <div id="s-results-container" class="results-container">
             <div class="table-wrapper">
@@ -351,42 +384,46 @@
                 </table>
             </div>
             <div class="cg-result">
-                <span class="cg-result-label">Calculated Center of Gravity</span>
+                <span class="cg-result-label">Center of Gravity</span>
                 <span class="cg-result-value"><span id="s-r-cg"></span> IN</span>
             </div>
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MULTI ENGINE SCREEN -->
-    <!-- ========================================== -->
+    <!-- MULTI ENGINE -->
     <div id="screen-multi" class="app-screen">
         <div class="nav-bar">
-            <button class="back-btn" onclick="switchScreen('screen-menu')">← MENU</button>
-            <h2>MULTI ENG</h2>
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
+            <h2>Multi Engine</h2>
         </div>
 
         <div class="input-grid">
             <div class="input-group full-width">
-                <label>PIC WEIGHT (LBS)</label>
+                <label>PIC Weight (lbs)</label>
                 <input type="number" id="m-pic-weight" placeholder="> 0">
             </div>
             <div class="input-group">
-                <label>TRAINEE 1 (LBS)</label>
+                <label>Trainee 1 (lbs)</label>
                 <input type="number" id="m-t1-weight" placeholder="> 0">
             </div>
             <div class="input-group">
-                <label>TRAINEE 2 (LBS)</label>
+                <label>Trainee 2 (lbs)</label>
                 <input type="number" id="m-t2-weight" placeholder="≥ 0">
             </div>
             <div class="input-group full-width">
-                <label>FUEL (LITERS)</label>
+                <label>Fuel (Liters)</label>
                 <input type="number" id="m-fuel-liters" placeholder="Liters">
             </div>
         </div>
 
-        <button class="calc-btn" onclick="calculateMultiWB()">COMPUTE W&B</button>
+        <button class="calc-btn" onclick="startCalculation('multi')">Compute W&B</button>
         <div id="m-error-msg" class="error"></div>
+
+        <!-- Loading Simulation -->
+        <div id="m-loader" class="loader-container">
+            <div class="animated-plane">✈️</div>
+            <div class="loader-text">Analyzing Data...</div>
+        </div>
 
         <div id="m-results-container" class="results-container">
             <div class="table-wrapper">
@@ -404,7 +441,7 @@
                         <td>292207.00</td>
                     </tr>
                     <tr>
-                        <td>Crew (All)</td>
+                        <td>Crew</td>
                         <td id="m-r-creww"></td>
                         <td>85.50</td>
                         <td id="m-r-crewm"></td>
@@ -433,7 +470,7 @@
                         <td>93.60</td>
                         <td>-2153.00</td>
                     </tr>
-                    <tr class="subtotal" style="color:var(--accent-green);">
+                    <tr class="subtotal" style="color: #15803d; background: #f0fdf4;">
                         <td>TAKEOFF</td>
                         <td id="m-r-tow"></td>
                         <td>--</td>
@@ -442,23 +479,23 @@
                 </table>
             </div>
             <div class="cg-result">
-                <span class="cg-result-label">Takeoff Center of Gravity</span>
+                <span class="cg-result-label">Takeoff CG</span>
                 <span class="cg-result-value"><span id="m-r-cg"></span> IN</span>
             </div>
         </div>
     </div>
 </div>
 
-    <!-- ========================================== -->
-    <!-- JAVASCRIPT LOGIC (UNCHANGED IDs) -->
-    <!-- ========================================== -->
     <script>
         function switchScreen(screenId) {
             document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
+            // Reset all states
             document.getElementById('s-results-container').style.display = 'none';
             document.getElementById('m-results-container').style.display = 'none';
+            document.getElementById('s-loader').style.display = 'none';
+            document.getElementById('m-loader').style.display = 'none';
             document.getElementById('s-error-msg').style.display = 'none';
             document.getElementById('m-error-msg').style.display = 'none';
         }
@@ -470,10 +507,55 @@
             "JSN": { emptyWeight: 1695.88, emptyArm: 39.34 }
         };
 
-        function calculateSingleWB() {
-            document.getElementById('s-error-msg').style.display = 'none';
-            document.getElementById('s-results-container').style.display = 'none';
+        // Handles the animated loading delay
+        function startCalculation(type) {
+            let errorBox = document.getElementById(type === 'single' ? 's-error-msg' : 'm-error-msg');
+            let resultsBox = document.getElementById(type === 'single' ? 's-results-container' : 'm-results-container');
+            let loader = document.getElementById(type === 'single' ? 's-loader' : 'm-loader');
+            
+            errorBox.style.display = 'none';
+            resultsBox.style.display = 'none';
 
+            // Validate FIRST before showing loader
+            if(type === 'single') {
+                let acId = document.getElementById('s-ac-id').value.trim();
+                let picWeight = parseFloat(document.getElementById('s-pic-weight').value);
+                if (!fleetData[acId]) {
+                    errorBox.innerText = "Invalid Registration. Use: " + Object.keys(fleetData).join(", ");
+                    errorBox.style.display = 'block';
+                    return;
+                }
+                if (isNaN(picWeight) || picWeight <= 0) {
+                    errorBox.innerText = "PIC Weight must be > 0 lbs.";
+                    errorBox.style.display = 'block';
+                    return;
+                }
+            } else {
+                let pic = parseFloat(document.getElementById('m-pic-weight').value);
+                let t1 = parseFloat(document.getElementById('m-t1-weight').value);
+                if (isNaN(pic) || pic <= 0) {
+                    errorBox.innerText = "PIC Weight must be > 0 lbs.";
+                    errorBox.style.display = 'block';
+                    return;
+                }
+                if (isNaN(t1) || t1 <= 0) {
+                    errorBox.innerText = "Trainee 1 Weight must be > 0 lbs.";
+                    errorBox.style.display = 'block';
+                    return;
+                }
+            }
+
+            // If valid, show loader for 1.2 seconds to simulate calculation
+            loader.style.display = 'block';
+            
+            setTimeout(() => {
+                loader.style.display = 'none';
+                if(type === 'single') calculateSingleWB();
+                else calculateMultiWB();
+            }, 1200);
+        }
+
+        function calculateSingleWB() {
             let acId = document.getElementById('s-ac-id').value.trim();
             let picWeight = parseFloat(document.getElementById('s-pic-weight').value);
             let traineeWeight = parseFloat(document.getElementById('s-trainee-weight').value);
@@ -481,20 +563,6 @@
 
             if (isNaN(traineeWeight)) traineeWeight = 0;
             if (isNaN(fuelLiters)) fuelLiters = 0;
-
-            if (!fleetData[acId]) {
-                let validCodes = Object.keys(fleetData).join(", ");
-                let err = document.getElementById('s-error-msg');
-                err.innerText = "Invalid Registration. Use: " + validCodes;
-                err.style.display = 'block';
-                return;
-            }
-            if (isNaN(picWeight) || picWeight <= 0) {
-                let err = document.getElementById('s-error-msg');
-                err.innerText = "PIC Weight must be > 0 lbs.";
-                err.style.display = 'block';
-                return;
-            }
 
             let ac = fleetData[acId];
             let basicMoment = ac.emptyWeight * ac.emptyArm;
@@ -516,7 +584,7 @@
             document.getElementById('s-r-pic-label').innerText = "PIC";
             document.getElementById('s-r-picw').innerText = picWeight.toFixed(2);
             document.getElementById('s-r-picm').innerText = picMoment.toFixed(2);
-
+            
             document.getElementById('s-r-train-label').innerText = "Trainee";
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
@@ -533,9 +601,6 @@
         }
 
         function calculateMultiWB() {
-            document.getElementById('m-error-msg').style.display = 'none';
-            document.getElementById('m-results-container').style.display = 'none';
-
             let pic = parseFloat(document.getElementById('m-pic-weight').value);
             let t1 = parseFloat(document.getElementById('m-t1-weight').value);
             let t2 = parseFloat(document.getElementById('m-t2-weight').value);
@@ -543,19 +608,6 @@
 
             if (isNaN(t2)) t2 = 0;
             if (isNaN(fuelLiters)) fuelLiters = 0;
-
-            if (isNaN(pic) || pic <= 0) {
-                let err = document.getElementById('m-error-msg');
-                err.innerText = "PIC Weight must be > 0 lbs.";
-                err.style.display = 'block';
-                return;
-            }
-            if (isNaN(t1) || t1 <= 0) {
-                let err = document.getElementById('m-error-msg');
-                err.innerText = "Trainee 1 Weight must be > 0 lbs.";
-                err.style.display = 'block';
-                return;
-            }
             
             let fuelGal = fuelLiters / 3.785;
             let fuel = fuelGal * 6.0;
@@ -593,4 +645,3 @@
     </script>
 </body>
 </html>
-        
