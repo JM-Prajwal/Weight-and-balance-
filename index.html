@@ -85,9 +85,10 @@
             0% { transform: translateX(0vw) rotate(-2deg); }
             100% { transform: translateX(130vw) rotate(-2deg); }
         }
+        /* FIXED: Using scaleX(-1) to mirror the image instead of rotating it upside down */
         @keyframes flyLeft {
-            0% { transform: translateX(0vw) rotate(178deg); }
-            100% { transform: translateX(-130vw) rotate(178deg); }
+            0% { transform: translateX(0vw) scaleX(-1); }
+            100% { transform: translateX(-130vw) scaleX(-1); }
         }
 
         /* Main Container */
@@ -533,7 +534,7 @@
     </div>
 </div>
 
-     <script>
+    <script>
         function switchScreen(screenId) {
             document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
@@ -706,4 +707,3 @@
     </script>
 </body>
 </html>
-        
