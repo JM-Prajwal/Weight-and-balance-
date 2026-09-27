@@ -2,234 +2,260 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>W&B Calculator Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>W&B EFB Calculator</title>
     
-    <!-- Google Fonts: Inter -->
+    <!-- Aviation-style Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=JetBrains+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Base & Background */
+        /* Base & Cockpit Theme */
+        :root {
+            --bg-dark: #090c10;
+            --panel-bg: #161b22;
+            --panel-border: #30363d;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --warning-red: #f85149;
+            --input-bg: #0d1117;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
-            color: #1e293b;
+            padding: 15px;
+            background-color: var(--bg-dark);
+            /* Subtle aviation navigation grid background */
+            background-image: 
+                linear-gradient(rgba(88, 166, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(88, 166, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            color: var(--text-main);
             min-height: 100vh;
-            box-sizing: border-box;
             display: flex;
             justify-content: center;
             align-items: flex-start;
         }
 
-        /* Main App Container */
+        /* EFB Panel Container */
         .app-container {
             width: 100%;
-            max-width: 540px;
-            background: #ffffff;
-            border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            padding: 35px;
+            max-width: 600px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            padding: 25px 20px;
             position: relative;
-            overflow: hidden;
         }
 
-        h2 { text-align: center; margin-top: 0; font-weight: 700; color: #0f172a; }
-        
-        /* Animations */
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Typography */
+        h1, h2 {
+            font-family: 'Chakra Petch', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
         }
-
-        /* Navigation & Screens */
-        .app-screen { display: none; animation: fadeSlideUp 0.4s ease-out forwards; }
-        .app-screen.active { display: block; }
         
         .menu-title { 
             text-align: center; 
-            margin-bottom: 40px; 
-            font-size: 32px; 
-            font-weight: 700;
-            color: #1e3a8a;
-            letter-spacing: -0.5px;
+            margin-bottom: 30px; 
+            font-size: 28px; 
+            color: var(--accent-blue);
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
         }
 
-        /* Menu Buttons */
+        /* Screens */
+        .app-screen { display: none; animation: fadeIn 0.3s ease-out forwards; }
+        .app-screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        /* Dashboard Buttons */
         .menu-btn {
             width: 100%;
-            padding: 24px;
-            font-size: 20px;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
-            border: none;
-            border-radius: 16px;
+            padding: 20px;
+            background: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            color: var(--text-main);
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .menu-btn:hover { 
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(37, 99, 235, 0.3);
+        .menu-btn:hover, .menu-btn:active { 
+            border-color: var(--accent-blue);
+            background: #111b27;
+            box-shadow: inset 0 0 15px rgba(88, 166, 255, 0.1);
         }
-        .menu-btn span {
-            display: block;
-            font-size: 14px;
-            font-weight: 400;
-            color: #bfdbfe;
-            margin-top: 6px;
-        }
+        .menu-btn-title { font-family: 'Chakra Petch', sans-serif; font-size: 22px; font-weight: 700; color: var(--accent-blue); }
+        .menu-btn-sub { font-size: 13px; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* Top Navigation Bar */
+        /* Top Nav */
         .nav-bar {
             display: flex;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 15px;
         }
-        .nav-bar h2 { 
-            flex-grow: 1; 
-            margin: 0; 
-            font-size: 22px; 
-            text-align: center;
-            padding-right: 60px; /* offset for back button balance */
-        }
+        .nav-bar h2 { flex-grow: 1; text-align: center; font-size: 20px; color: #fff; padding-right: 70px; }
         .back-btn {
-            padding: 10px 16px;
-            background-color: #f1f5f9;
-            color: #475569;
-            border: none;
-            border-radius: 10px;
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            border-radius: 8px;
             font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Inter', sans-serif;
         }
-        .back-btn:hover {
-            background-color: #e2e8f0;
-            color: #0f172a;
-        }
+        .back-btn:hover { color: #fff; border-color: var(--text-muted); }
 
-        /* Form Inputs */
-        .input-group { margin-bottom: 20px; }
+        /* Forms & Inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-group.full-width { grid-column: span 2; }
+        
         label { 
             display: block; 
-            font-weight: 600; 
-            margin-bottom: 8px; 
-            font-size: 14px;
-            color: #475569;
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
         }
+        
         input {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace; /* Monospace for precise numbers */
             font-size: 16px; 
-            background-color: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            color: #fff;
+            border-radius: 8px;
             box-sizing: border-box;
-            color: #0f172a;
-            transition: all 0.2s ease;
-            font-family: 'Inter', sans-serif;
+            transition: border 0.2s;
         }
-        input:focus {
-            outline: none;
-            border-color: #3b82f6;
-            background-color: #ffffff;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-        }
-        input::placeholder { color: #94a3b8; }
+        input:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 8px rgba(88, 166, 255, 0.3); }
+        input::placeholder { color: #484f58; font-family: 'Roboto', sans-serif; font-size: 14px; }
 
-        /* Calculate Button */
+        /* Calculate Action */
         .calc-btn {
             width: 100%;
-            padding: 18px;
+            padding: 16px;
+            font-family: 'Chakra Petch', sans-serif;
             font-size: 18px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: var(--accent-green);
+            color: #000;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
-            margin-top: 10px;
-            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 0.5px;
+            margin-top: 5px;
         }
-        .calc-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 25px rgba(16, 185, 129, 0.3);
-        }
-        
-        /* Error Message */
+        .calc-btn:hover { background: #46cf5a; box-shadow: 0 0 15px rgba(63, 185, 80, 0.4); }
+
         .error {
-            color: #b91c1c;
-            font-weight: 600;
+            color: var(--warning-red);
+            font-size: 14px;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 15px;
             display: none;
-            padding: 14px;
-            border-radius: 10px;
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            animation: fadeSlideUp 0.3s ease;
+            padding: 10px;
+            background: rgba(248, 81, 73, 0.1);
+            border: 1px solid rgba(248, 81, 73, 0.4);
+            border-radius: 8px;
         }
 
-        /* Results Area */
-        .results-container { 
-            display: none; 
-            margin-top: 30px;
-            animation: fadeSlideUp 0.5s ease;
-        }
+        /* Data Tables - Fixed for Mobile */
+        .results-container { display: none; margin-top: 25px; }
         
+        /* Table Wrapper prevents screen breaking on tiny phones */
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            background: var(--input-bg);
+        }
+
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 10px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-            font-size: 14px;
+            border-collapse: collapse;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace; /* Digital readout look */
+            min-width: 320px; /* Ensures columns don't crush too much */
         }
         th, td { 
-            padding: 14px 12px; 
-            text-align: center; 
-            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 8px; 
+            text-align: right; /* Standard for financial/aviation data */
+            border-bottom: 1px solid var(--panel-border);
         }
+        th:first-child, td:first-child { text-align: left; padding-left: 15px; }
+        th:last-child, td:last-child { padding-right: 15px; }
+        
         th { 
-            background-color: #f8fafc; 
-            font-weight: 600; 
-            color: #475569;
+            background-color: #1c2128; 
+            color: var(--text-muted);
+            font-family: 'Roboto', sans-serif;
             text-transform: uppercase;
-            font-size: 12px;
+            font-size: 11px;
             letter-spacing: 0.5px;
+            white-space: nowrap; /* Fixes awkward two-line headers */
         }
-        td { font-weight: 500; color: #1e293b; }
-        tr:last-child td, tr:last-child th { border-bottom: none; }
         
-        .subtotal { background-color: #f1f5f9; font-weight: 700; }
-        .subtotal td { color: #0f172a; }
+        tr:last-child td { border-bottom: none; }
+        .subtotal { background-color: rgba(88, 166, 255, 0.05); }
+        .subtotal td { color: var(--accent-blue); font-weight: 700; }
         
+        /* Final Output Display */
         .cg-result {
             text-align: center;
-            font-size: 24px;
-            font-weight: 800;
-            margin-top: 25px;
-            color: #047857;
-            background: #ecfdf5;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #a7f3d0;
+            margin-top: 20px;
+            background: #000;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #2ea043;
+            box-shadow: inset 0 0 20px rgba(46, 160, 67, 0.2);
         }
-        .cg-result span { color: #065f46; }
+        .cg-result-label {
+            display: block;
+            font-size: 12px;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+        .cg-result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
 
+        /* Mobile specific adjustments */
+        @media (max-width: 400px) {
+            .input-grid { grid-template-columns: 1fr; }
+            .input-group.full-width { grid-column: span 1; }
+            th, td { font-size: 12px; padding: 10px 5px; }
+            .cg-result-value { font-size: 26px; }
+        }
     </style>
 </head>
 <body>
@@ -239,9 +265,17 @@
     <!-- MAIN MENU SCREEN -->
     <!-- ========================================== -->
     <div id="screen-menu" class="app-screen active">
-        <h1 class="menu-title">W&B Calculator</h1>
-        <button class="menu-btn" onclick="switchScreen('screen-single')">Single Engine <span>Cessna Fleet</span></button>
-        <button class="menu-btn" onclick="switchScreen('screen-multi')">Multi Engine <span>Piper Seneca VT-AET</span></button>
+        <h1 class="menu-title">W&B System</h1>
+        
+        <button class="menu-btn" onclick="switchScreen('screen-single')">
+            <span class="menu-btn-title">SINGLE ENGINE</span>
+            <span class="menu-btn-sub">Cessna Fleet</span>
+        </button>
+        
+        <button class="menu-btn" onclick="switchScreen('screen-multi')">
+            <span class="menu-btn-title">MULTI ENGINE</span>
+            <span class="menu-btn-sub">Piper Seneca VT-AET</span>
+        </button>
     </div>
 
     <!-- ========================================== -->
@@ -249,70 +283,77 @@
     <!-- ========================================== -->
     <div id="screen-single" class="app-screen">
         <div class="nav-bar">
-            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
-            <h2>Single Engine</h2>
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← MENU</button>
+            <h2>SINGLE ENG</h2>
         </div>
 
-        <div class="input-group">
-            <label>Aircraft Registration (Last 3 letters):</label>
-            <input type="text" id="s-ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
-        </div>
-        <div class="input-group">
-            <label>PIC Weight (lbs):</label>
-            <input type="number" id="s-pic-weight" placeholder="Must be greater than 0">
-        </div>
-        <div class="input-group">
-            <label>Trainee Weight (lbs):</label>
-            <input type="number" id="s-trainee-weight" placeholder="Can be 0">
-        </div>
-        <div class="input-group">
-            <label>Fuel (Liters):</label>
-            <input type="number" id="s-fuel-liters" placeholder="Enter usable fuel in Liters">
+        <div class="input-grid">
+            <div class="input-group full-width">
+                <label>ACFT REGISTRATION (LAST 3)</label>
+                <input type="text" id="s-ac-id" maxlength="3" placeholder="e.g., AAQ" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="input-group">
+                <label>PIC (LBS)</label>
+                <input type="number" id="s-pic-weight" placeholder="> 0">
+            </div>
+            <div class="input-group">
+                <label>TRAINEE (LBS)</label>
+                <input type="number" id="s-trainee-weight" placeholder="≥ 0">
+            </div>
+            <div class="input-group full-width">
+                <label>USABLE FUEL (LITERS)</label>
+                <input type="number" id="s-fuel-liters" placeholder="Liters">
+            </div>
         </div>
 
-        <button class="calc-btn" onclick="calculateSingleWB()">Calculate W&B</button>
+        <button class="calc-btn" onclick="calculateSingleWB()">COMPUTE W&B</button>
         <div id="s-error-msg" class="error"></div>
 
         <div id="s-results-container" class="results-container">
-            <table>
-                <tr>
-                    <th>Item</th>
-                    <th>Weight (lbs)</th>
-                    <th>Arm (in)</th>
-                    <th>Moment</th>
-                </tr>
-                <tr>
-                    <td>Basic Empty</td>
-                    <td id="s-r-ew"></td>
-                    <td id="s-r-ea"></td>
-                    <td id="s-r-em"></td>
-                </tr>
-                <tr>
-                    <td id="s-r-pic-label">PIC</td>
-                    <td id="s-r-picw"></td>
-                    <td>37</td>
-                    <td id="s-r-picm"></td>
-                </tr>
-                <tr>
-                    <td id="s-r-train-label">Trainee</td>
-                    <td id="s-r-trainw"></td>
-                    <td>37</td>
-                    <td id="s-r-trainm"></td>
-                </tr>
-                <tr>
-                    <td id="s-r-fuel-label">Fuel</td>
-                    <td id="s-r-fuelw"></td>
-                    <td>48</td>
-                    <td id="s-r-fuelm"></td>
-                </tr>
-                <tr class="subtotal">
-                    <td>TOTAL</td>
-                    <td id="s-r-tw"></td>
-                    <td>--</td>
-                    <td id="s-r-tm"></td>
-                </tr>
-            </table>
-            <div class="cg-result">CG: <span id="s-r-cg"></span> in.</div>
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Station</th>
+                        <th>Wt(lbs)</th>
+                        <th>Arm(in)</th>
+                        <th>Moment</th>
+                    </tr>
+                    <tr>
+                        <td>Basic Empty</td>
+                        <td id="s-r-ew"></td>
+                        <td id="s-r-ea"></td>
+                        <td id="s-r-em"></td>
+                    </tr>
+                    <tr>
+                        <td id="s-r-pic-label">PIC</td>
+                        <td id="s-r-picw"></td>
+                        <td>37.00</td>
+                        <td id="s-r-picm"></td>
+                    </tr>
+                    <tr>
+                        <td id="s-r-train-label">Trainee</td>
+                        <td id="s-r-trainw"></td>
+                        <td>37.00</td>
+                        <td id="s-r-trainm"></td>
+                    </tr>
+                    <tr>
+                        <td id="s-r-fuel-label">Fuel</td>
+                        <td id="s-r-fuelw"></td>
+                        <td>48.00</td>
+                        <td id="s-r-fuelm"></td>
+                    </tr>
+                    <tr class="subtotal">
+                        <td>TOTAL</td>
+                        <td id="s-r-tw"></td>
+                        <td>--</td>
+                        <td id="s-r-tm"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="cg-result">
+                <span class="cg-result-label">Calculated Center of Gravity</span>
+                <span class="cg-result-value"><span id="s-r-cg"></span> IN</span>
+            </div>
         </div>
     </div>
 
@@ -321,88 +362,95 @@
     <!-- ========================================== -->
     <div id="screen-multi" class="app-screen">
         <div class="nav-bar">
-            <button class="back-btn" onclick="switchScreen('screen-menu')">← Back</button>
-            <h2>Multi Engine</h2>
+            <button class="back-btn" onclick="switchScreen('screen-menu')">← MENU</button>
+            <h2>MULTI ENG</h2>
         </div>
 
-        <div class="input-group">
-            <label>PIC Weight (lbs):</label>
-            <input type="number" id="m-pic-weight" placeholder="Must be greater than 0">
-        </div>
-        <div class="input-group">
-            <label>Trainee 1 Weight (lbs):</label>
-            <input type="number" id="m-t1-weight" placeholder="Must be greater than 0">
-        </div>
-        <div class="input-group">
-            <label>Trainee 2 Weight (lbs):</label>
-            <input type="number" id="m-t2-weight" placeholder="Can be 0">
-        </div>
-        <div class="input-group">
-            <label>Fuel (Liters):</label>
-            <input type="number" id="m-fuel-liters" placeholder="Enter fuel in Liters">
+        <div class="input-grid">
+            <div class="input-group full-width">
+                <label>PIC WEIGHT (LBS)</label>
+                <input type="number" id="m-pic-weight" placeholder="> 0">
+            </div>
+            <div class="input-group">
+                <label>TRAINEE 1 (LBS)</label>
+                <input type="number" id="m-t1-weight" placeholder="> 0">
+            </div>
+            <div class="input-group">
+                <label>TRAINEE 2 (LBS)</label>
+                <input type="number" id="m-t2-weight" placeholder="≥ 0">
+            </div>
+            <div class="input-group full-width">
+                <label>FUEL (LITERS)</label>
+                <input type="number" id="m-fuel-liters" placeholder="Liters">
+            </div>
         </div>
 
-        <button class="calc-btn" onclick="calculateMultiWB()">Calculate W&B</button>
+        <button class="calc-btn" onclick="calculateMultiWB()">COMPUTE W&B</button>
         <div id="m-error-msg" class="error"></div>
 
         <div id="m-results-container" class="results-container">
-            <table>
-                <tr>
-                    <th>Item</th>
-                    <th>Weight (lbs)</th>
-                    <th>Arm (in)</th>
-                    <th>Moment</th>
-                </tr>
-                <tr>
-                    <td>Basic Empty</td>
-                    <td>3341.80</td>
-                    <td>87.44</td>
-                    <td>292207.00</td>
-                </tr>
-                <tr>
-                    <td>Crew (All 3)</td>
-                    <td id="m-r-creww"></td>
-                    <td>85.50</td>
-                    <td id="m-r-crewm"></td>
-                </tr>
-                <tr class="subtotal">
-                    <td>Zero Fuel Mass</td>
-                    <td id="m-r-zfw"></td>
-                    <td>--</td>
-                    <td id="m-r-zfm"></td>
-                </tr>
-                <tr>
-                    <td>Fuel</td>
-                    <td id="m-r-fuelw"></td>
-                    <td>93.60</td>
-                    <td id="m-r-fuelm"></td>
-                </tr>
-                <tr class="subtotal">
-                    <td>Ramp Weight</td>
-                    <td id="m-r-ramp-w"></td>
-                    <td>--</td>
-                    <td id="m-r-ramp-m"></td>
-                </tr>
-                <tr>
-                    <td>Taxi Allowance</td>
-                    <td>-23.00</td>
-                    <td>93.60</td>
-                    <td>-2153.00</td>
-                </tr>
-                <tr class="subtotal">
-                    <td>TAKEOFF WT</td>
-                    <td id="m-r-tow"></td>
-                    <td>--</td>
-                    <td id="m-r-tom"></td>
-                </tr>
-            </table>
-            <div class="cg-result">Takeoff CG: <span id="m-r-cg"></span> in.</div>
+            <div class="table-wrapper">
+                <table>
+                    <tr>
+                        <th>Station</th>
+                        <th>Wt(lbs)</th>
+                        <th>Arm(in)</th>
+                        <th>Moment</th>
+                    </tr>
+                    <tr>
+                        <td>Empty</td>
+                        <td>3341.80</td>
+                        <td>87.44</td>
+                        <td>292207.00</td>
+                    </tr>
+                    <tr>
+                        <td>Crew (All)</td>
+                        <td id="m-r-creww"></td>
+                        <td>85.50</td>
+                        <td id="m-r-crewm"></td>
+                    </tr>
+                    <tr class="subtotal">
+                        <td>Zero Fuel</td>
+                        <td id="m-r-zfw"></td>
+                        <td>--</td>
+                        <td id="m-r-zfm"></td>
+                    </tr>
+                    <tr>
+                        <td>Fuel</td>
+                        <td id="m-r-fuelw"></td>
+                        <td>93.60</td>
+                        <td id="m-r-fuelm"></td>
+                    </tr>
+                    <tr class="subtotal">
+                        <td>Ramp Wt</td>
+                        <td id="m-r-ramp-w"></td>
+                        <td>--</td>
+                        <td id="m-r-ramp-m"></td>
+                    </tr>
+                    <tr>
+                        <td>Taxi Allw.</td>
+                        <td>-23.00</td>
+                        <td>93.60</td>
+                        <td>-2153.00</td>
+                    </tr>
+                    <tr class="subtotal" style="color:var(--accent-green);">
+                        <td>TAKEOFF</td>
+                        <td id="m-r-tow"></td>
+                        <td>--</td>
+                        <td id="m-r-tom"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="cg-result">
+                <span class="cg-result-label">Takeoff Center of Gravity</span>
+                <span class="cg-result-value"><span id="m-r-cg"></span> IN</span>
+            </div>
         </div>
     </div>
 </div>
 
     <!-- ========================================== -->
-    <!-- JAVASCRIPT LOGIC (UNCHANGED) -->
+    <!-- JAVASCRIPT LOGIC (UNCHANGED IDs) -->
     <!-- ========================================== -->
     <script>
         function switchScreen(screenId) {
@@ -437,13 +485,13 @@
             if (!fleetData[acId]) {
                 let validCodes = Object.keys(fleetData).join(", ");
                 let err = document.getElementById('s-error-msg');
-                err.innerText = "Invalid Registration! Please enter a valid 3-letter code (" + validCodes + ").";
+                err.innerText = "Invalid Registration. Use: " + validCodes;
                 err.style.display = 'block';
                 return;
             }
             if (isNaN(picWeight) || picWeight <= 0) {
                 let err = document.getElementById('s-error-msg');
-                err.innerText = "Error: PIC Weight must be greater than 0 lbs.";
+                err.innerText = "PIC Weight must be > 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
@@ -465,15 +513,15 @@
             document.getElementById('s-r-ea').innerText = ac.emptyArm.toFixed(2);
             document.getElementById('s-r-em').innerText = basicMoment.toFixed(2);
             
-            document.getElementById('s-r-pic-label').innerText = "PIC (" + picWeight.toFixed(2) + " lbs)";
+            document.getElementById('s-r-pic-label').innerText = "PIC";
             document.getElementById('s-r-picw').innerText = picWeight.toFixed(2);
             document.getElementById('s-r-picm').innerText = picMoment.toFixed(2);
-            
-            document.getElementById('s-r-train-label').innerText = "Trainee (" + traineeWeight.toFixed(2) + " lbs)";
+
+            document.getElementById('s-r-train-label').innerText = "Trainee";
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
             
-            document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(2) + " GAL)";
+            document.getElementById('s-r-fuel-label').innerText = "Fuel ("+fuelGallons.toFixed(1)+"g)";
             document.getElementById('s-r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('s-r-fuelm').innerText = fuelMoment.toFixed(2);
 
@@ -498,13 +546,13 @@
 
             if (isNaN(pic) || pic <= 0) {
                 let err = document.getElementById('m-error-msg');
-                err.innerText = "Error: PIC Weight must be greater than 0 lbs.";
+                err.innerText = "PIC Weight must be > 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
             if (isNaN(t1) || t1 <= 0) {
                 let err = document.getElementById('m-error-msg');
-                err.innerText = "Error: Trainee 1 Weight must be greater than 0 lbs.";
+                err.innerText = "Trainee 1 Weight must be > 0 lbs.";
                 err.style.display = 'block';
                 return;
             }
@@ -545,4 +593,4 @@
     </script>
 </body>
 </html>
-   
+        
