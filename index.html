@@ -254,8 +254,8 @@
             100% { transform: translate(40px, -30px) rotate(-25deg) scale(1.1); opacity: 0; }
         }
 
-        /* 📱 Fixed Mobile Results Table */
-        .results-container { display: none; margin-top: 25px; }
+        /* 📱 Fixed Results Table - Guaranteed No Scrolling */
+        .results-container { display: none; margin-top: 25px; width: 100%; box-sizing: border-box; }
         
         .table-wrapper {
             width: 100%;
@@ -263,6 +263,7 @@
             border-radius: 12px;
             background: #ffffff;
             box-sizing: border-box;
+            overflow: hidden; /* Hard stop on anything spilling out */
         }
 
         table {
@@ -270,6 +271,7 @@
             border-collapse: collapse;
             font-size: 14px;
             table-layout: auto; 
+            box-sizing: border-box;
         }
         
         th, td { 
@@ -286,7 +288,6 @@
             font-weight: 800;
             text-transform: uppercase;
             font-size: 12px;
-            white-space: nowrap; 
         }
         
         td:not(:first-child) { font-family: 'Roboto Mono', monospace; font-weight: 500; }
@@ -302,23 +303,29 @@
             border-radius: 12px;
             border: 2px solid #86efac;
             box-sizing: border-box;
+            width: 100%;
         }
         .cg-result-label { display: block; font-size: 13px; font-weight: 800; color: #166534; text-transform: uppercase; margin-bottom: 5px; }
         .cg-result-value { font-family: 'Roboto Mono', monospace; font-size: 32px; font-weight: 800; color: #15803d; }
 
-        /* 📱 Mobile CSS Media Query */
+        /* 📱 Ultimate Mobile CSS Media Query for Tiny Screens */
         @media (max-width: 480px) {
             body { padding: 10px; }
-            .app-container { padding: 25px 15px; }
-            .input-grid { grid-template-columns: 1fr; }
+            .app-container { padding: 20px 15px; width: 100%; border-radius: 16px; }
+            
+            .input-grid { grid-template-columns: 1fr; gap: 10px; }
             .input-group.full-width { grid-column: span 1; }
+            input { padding: 12px; font-size: 15px; }
+            
+            /* Aggressively squish the table so it NEVER scrolls */
             table { font-size: 11px; } 
-            th { font-size: 9px; padding: 12px 4px; letter-spacing: -0.5px; } 
-            td { padding: 12px 4px; } 
+            th { font-size: 9px; padding: 10px 4px; letter-spacing: -0.5px; white-space: normal; line-height: 1.2; } 
+            td { padding: 10px 4px; } 
             th:first-child, td:first-child { padding-left: 8px; }
             th:last-child, td:last-child { padding-right: 8px; }
+            
             .cg-result-value { font-size: 26px; }
-            .nav-bar h2 { font-size: 18px; padding-right: 0; margin-left: 10px; } 
+            .nav-bar h2 { font-size: 18px; padding-right: 0; } 
         }
     </style>
 </head>
@@ -327,8 +334,8 @@
 <!-- Clouds Background Layer -->
 <div class="clouds-bg"></div>
 
-<!-- Background Planes (IDs added for JS dynamic switching) -->
-<img src="1790494188872.jpg" id="bg-plane-1" class="bg-plane plane-1" alt="plane 1">
+<!-- Background Planes -->
+<img src="cessna.png" id="bg-plane-1" class="bg-plane plane-1" alt="plane 1">
 <img src="piper.png" id="bg-plane-2" class="bg-plane plane-2" alt="plane 2">
 
 <div class="app-container">
@@ -378,7 +385,7 @@
         
         <!-- Single Engine Loader -->
         <div id="s-loader" class="loader-container">
-            <img src="1790494188872.jpg" class="animated-plane-img" alt="Cessna">
+            <img src="cessna.png" class="animated-plane-img" alt="Cessna">
             <div class="loader-text">Computing Dynamics...</div>
         </div>
 
@@ -544,15 +551,15 @@
 
             if (screenId === 'screen-single') {
                 // Show Cessna everywhere
-                bg1.src = '1790494188872.jpg';
-                bg2.src = '1790494188872.jpg';
+                bg1.src = 'cessna.png';
+                bg2.src = 'cessna.png';
             } else if (screenId === 'screen-multi') {
                 // Show Piper everywhere
                 bg1.src = 'piper.png';
                 bg2.src = 'piper.png';
             } else {
                 // Main Menu: Show one of each
-                bg1.src = '1790494188872.jpg';
+                bg1.src = 'cessna.png';
                 bg2.src = 'piper.png';
             }
         }
@@ -643,7 +650,8 @@
             document.getElementById('s-r-trainw').innerText = traineeWeight.toFixed(2);
             document.getElementById('s-r-trainm').innerText = traineeMoment.toFixed(2);
             
-            document.getElementById('s-r-fuel-label').innerText = "Fuel ("+fuelGallons.toFixed(1)+"g)";
+            // Fixed the label output here
+            document.getElementById('s-r-fuel-label').innerText = "Fuel (" + fuelGallons.toFixed(1) + " GAL)";
             document.getElementById('s-r-fuelw').innerText = fuelWeight.toFixed(2);
             document.getElementById('s-r-fuelm').innerText = fuelMoment.toFixed(2);
 
